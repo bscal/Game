@@ -1,0 +1,13 @@
+//ID,X_ROW,Y_COLUMN,COLLISIONTYPE
+//IF NOTHING NO COLLUSION
+Grass1,0,1
+Grass2,0,2
+Dirt1,1,1
+Dirt2,2,1
+Dirt3,1,2
+Dirt4,2,2
+Dirt5,1,3
+Water,4,3,0
+Water2,4,4,0
+TreeTop,5,3
+TreeBot,5,4,3

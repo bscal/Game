@@ -3,9 +3,9 @@ package me.bscal.game.sprites;
 import java.awt.image.BufferedImage;
 
 import me.bscal.game.Game;
-import me.bscal.game.Rectangle;
-import me.bscal.game.Render;
 import me.bscal.game.entity.GameObject;
+import me.bscal.game.graphics.Rectangle;
+import me.bscal.game.graphics.Render;
 
 public class AnimatedSprite extends Sprite implements GameObject{
 
@@ -15,6 +15,7 @@ public class AnimatedSprite extends Sprite implements GameObject{
 	private int counter = 0;
 	private int startSprite = 0;
 	private int endSprite = 0;
+	private int updates = 0;
 	
 	public AnimatedSprite(SpriteSheet sheet, Rectangle[] positions, int speed) {
 		sprites = new Sprite[positions.length];
@@ -40,12 +41,8 @@ public class AnimatedSprite extends Sprite implements GameObject{
 		this.endSprite = sprites.length - 1;
 	}
 
-	@Override
-	public void render(Render renderer, int xZoom, int yZoom) {
-		
-	}
+	public void render(Render renderer, int xZoom, int yZoom) {}
 
-	@Override
 	public void update(Game game) {
 		counter++;
 		if(counter == speed) {
@@ -79,6 +76,7 @@ public class AnimatedSprite extends Sprite implements GameObject{
 	
 	public void nextSprite() {
 		index++;
+		updates++;
 		if(index > endSprite) {
 			index = startSprite;
 		}
@@ -92,6 +90,26 @@ public class AnimatedSprite extends Sprite implements GameObject{
 
 	public Rectangle getRectangle() {
 		return null;
+	}
+	
+	public int getLayer() {
+		return -1;
+	}
+	
+	public int getSpeed() {
+		return speed;
+	}
+	
+	public int getTotalUpdates() {
+		return updates;
+	}
+	
+	public int getStartSprite() {
+		return startSprite;
+	}
+	
+	public int getEndSprite() {
+		return endSprite;
 	}
 	
 }

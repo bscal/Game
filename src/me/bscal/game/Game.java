@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
@@ -17,12 +18,17 @@ import javax.swing.JFrame;
 import me.bscal.game.GUI.GUI;
 import me.bscal.game.GUI.GUIButton;
 import me.bscal.game.GUI.SDKButton;
-import me.bscal.game.GameState.State;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
+import me.bscal.game.graphics.Rectangle;
+import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.game.listeners.MouseClickListener;
+import me.bscal.game.mapping.Map;
+import me.bscal.game.mapping.Tiles;
 import me.bscal.game.sprites.AnimatedSprite;
+import me.bscal.game.sprites.Sprite;
+import me.bscal.game.sprites.SpriteHandler;
 import me.bscal.game.sprites.SpriteSheet;
 
 public class Game extends JFrame implements Runnable{
@@ -31,99 +37,77 @@ public class Game extends JFrame implements Runnable{
 	 * 
 	 */
 	private static final long serialVersionUID = -7240204747443743168L;
-	public final int WIDTH = 1200;
-	public final int HEIGHT = 900;
-	private final int XZOOM = 3;
-	private final int YZOOM = 3;
+	public static int width = 1200;
+	public static int height = width / 12 * 9;
+	public static final int SCALE = 2;
+	public static final int XZOOM = SCALE;
+	public static final int YZOOM = SCALE;
 	public static int alpha = 0xFFCCFF00; //0xFF defines Hex color codes
-	private final String path = "resources/";
+	public final int TARGET_FPS = 30;
+	public final String path = "resources/img/";
 	
+	private Thread thread;
+	private boolean isRunning = false;
 	private Canvas canvas = new Canvas();
 	private Render renderer;
-	private SpriteSheet sheet;
-	private SpriteSheet playerSheet;
-	private SpriteSheet fireball;
-	private SpriteSheet explosion;
 	private Tiles tiles;
 	private Map map;
 	private KeyboardListener listener;
 	private MouseClickListener mouseListener;
-	
-	//private GameState state;
-	
 	private ArrayList<GameObject> entities = new ArrayList<GameObject>();
-	private ArrayList<GameObject> entitiesToRemove = new ArrayList<GameObject>();
-	private ArrayList<GameObject> entitiesToAdd = new ArrayList<GameObject>();
+	private static ArrayList<GameObject> entitiesToRemove = new ArrayList<GameObject>();
+	private static ArrayList<GameObject> entitiesToAdd = new ArrayList<GameObject>();
 	private Player player;
 	private int selectedTileID = 3;
+	private int selectedLayer = 2;
 	
 	public Game() {
+		this.setTitle("Game");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setBounds(0, 0, WIDTH, HEIGHT);
+		this.setBounds(0, 0, width, height);
 		this.setLocationRelativeTo(null);
-		canvas.setBounds(0, 0, WIDTH, HEIGHT);
+		canvas.setBounds(0, 0, width, height);
 		this.add(canvas);
 		this.pack();
 		this.setVisible(true);
+		canvas.createBufferStrategy(3);
+		renderer = new Render(canvas.getWidth(), canvas.getHeight());
 		init();
 	}
 	
 	private void init() {
 		float start = System.nanoTime();
-		
-		canvas.createBufferStrategy(3);
-		renderer = new Render(getWidth(), getHeight());
-		//Loads GameState
-		//state = new GameState(State.GAME);	//TODO Set this to main menu/make main menu
+		String workingDir = System.getProperty("user.dir");
+		System.out.println("Current working directory : " + workingDir);
 		//Loads SpriteSheet
-		BufferedImage sheetImg = loadImage(path + "Tiles1.png");
-		sheet = new SpriteSheet(sheetImg);
-		sheet.init(16, 16);
-		//AnimatedSprites Sheet
-		BufferedImage playerImg = loadImage(path + "Player.png");
-		playerSheet = new SpriteSheet(playerImg);
-		playerSheet.init(20, 26);
-		//Fireball Sheet
-		BufferedImage fireballImg = loadImageAlpha(path + "Fireball.png");
-		fireball = new SpriteSheet(fireballImg);
-		fireball.init(16, 16);
-		//Explosion Sheet
-		BufferedImage explosionImg = loadImage(path + "Explosion.png");
-		explosion = new SpriteSheet(explosionImg);
-		explosion.init(16, 16);
+		new SpriteHandler();
 		//Tiles/Map
-		tiles = new Tiles(new File("Tiles.txt"), sheet);
-		map = new Map(new File("Map.txt"), tiles);
-		//AnimatedSprites Player
-		AnimatedSprite animatedPlayer = new AnimatedSprite(playerSheet, 3);
-		//Load GUI and SDKGUI
-		/*
+		File tilesFile = new File(Game.class.getResource("resources/Tiles.txt").getPath());
+		File mapFile = new File(Game.class.getResource("resources/Map.txt").getPath());
+		tiles = new Tiles(tilesFile, SpriteHandler.tileSheet);
+		map = new Map(mapFile, tiles);
+		
+		//Load GUI and SDKButtonGUI
 		GUIButton[] buttons = new GUIButton[tiles.size()];
 		Sprite[] tileList = tiles.getSprites();
-		
-		
 		for(int i = 0; i < buttons.length; i++) {
 			Rectangle tileRect = new Rectangle(0, i*(16 * XZOOM + 2), 16*XZOOM, 16*YZOOM);
 			buttons[i] = new SDKButton(this, i, tileList[i], tileRect);
 		}
-		
 		GUI gui = new GUI(buttons, 5, 5, true);
-		*/
-		
+
 		//Initialize entities
-		//entities = new GameObject[2];
-		//Players sprite *
+		AnimatedSprite animatedPlayer = new AnimatedSprite(SpriteHandler.playerSheet, 3);
 		player = new Player(animatedPlayer, 8);
 		entities.add(player);
-		//entities.add(gui);
-		//Initialize listeners and adds to canvas
+		entities.add(gui);
+		//Initialize listeners
 		mouseListener = new MouseClickListener(this);
 		listener = new KeyboardListener(this);
 		canvas.addKeyListener(listener);
 		canvas.addFocusListener(listener);
 		canvas.addMouseListener(mouseListener);
 		canvas.addMouseMotionListener(mouseListener);
-		
 		addComponentListener(new ComponentListener() {
 
 			@Override
@@ -136,88 +120,53 @@ public class Game extends JFrame implements Runnable{
 			public void componentResized(ComponentEvent e) {
 				getRenderer().getCamera().width = canvas.getWidth();
 				getRenderer().getCamera().height = canvas.getHeight();
+				width = canvas.getWidth();
+				height = canvas.getHeight();
 			}
 
 			@Override
 			public void componentShown(ComponentEvent e) {}
 		});
+		canvas.requestFocus();
 		
 		float finish = System.nanoTime();
 		System.out.println("Startup took: " + ((finish - start) / 1000000) + " ms | " + ((finish - start) / 1000000000) + " seconds");
 	}
 	
 	public void update() {
-		//for(int i = 0; i < entities.length; i++) {
-		//	entities[i].update(this);
-		//}
 		for(GameObject entity : entities) {
 			entity.update(this);
 		}
 		updateEntities();
 	}
 	
-	public BufferedImage loadImage(String path) {
-		try {
-			BufferedImage loadedImage = ImageIO.read(Game.class.getResource(path));
-			BufferedImage formated = new BufferedImage(loadedImage.getWidth(), loadedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-			formated.getGraphics().drawImage(loadedImage, 0, 0, null);
-			return formated;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	public BufferedImage loadImageAlpha(String path) {
-		try {
-			BufferedImage loadedImage = ImageIO.read(Game.class.getResource(path));
-			BufferedImage formated = new BufferedImage(loadedImage.getWidth(), loadedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			formated.getGraphics().drawImage(loadedImage, 0, 0, null);
-			return formated;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
 	public void render() {
 		BufferStrategy bufferStrategy = canvas.getBufferStrategy();
-		Graphics graphics = bufferStrategy.getDrawGraphics();
-		super.paint(graphics);
+		Graphics g = bufferStrategy.getDrawGraphics();
 		
-		map.render(renderer, XZOOM, YZOOM);
-		//for(int i = 0; i < entities.length; i++) {
-		//	entities[i].render(renderer, XZOOM, YZOOM);
+		map.render(renderer, getEntities(), XZOOM, YZOOM);
+		//for(GameObject entity : entities) {
+		//	entity.render(renderer, XZOOM, YZOOM);
 		//}
-		for(GameObject entity : entities) {
-			entity.render(renderer, XZOOM, YZOOM);
-		}
 		
-		renderer.render(graphics);
+		renderer.render(g);
 		
-		graphics.dispose();
+		g.dispose();
 		bufferStrategy.show();
 		renderer.clear();
 	}
 
 	public void run() {
-		@SuppressWarnings("unused")
-		BufferStrategy bufferStrategy = canvas.getBufferStrategy();
-		//int i = 0;
-		//int x = 0;
-	
-		long lastTime = System.nanoTime(); //long 2^63
-		final double fr = 30;
-		double ns = 1000000000 / fr;
+		long lastTime = System.nanoTime();
 		double delta = 0;
-		
 		int fps = 0;
 		int updates = 0;
 		long timer = System.currentTimeMillis();
+		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
 	
-		while(true) {
+		while(isRunning) {
 			long now = System.nanoTime();
-			delta += (now - lastTime) / ns;
+			delta += (now - lastTime) / (double)OPTIMAL_TIME;
 			lastTime = now;
 			if(delta >= 1) {
 				update();
@@ -227,20 +176,38 @@ public class Game extends JFrame implements Runnable{
 			render();
 			fps++;
 			
-			if(System.currentTimeMillis() - timer > 1000) {
-				timer += 1000;
-				System.out.println("Fps: " + fps + " Ticks: " + updates);
+			if(System.currentTimeMillis() - timer > 1000L) {
+				timer += 1000L;
+				Runtime runtime = Runtime.getRuntime();
+				long memory = runtime.totalMemory() - runtime.freeMemory();
+			    System.out.println("Used memory in megabytes: " + memory/1048576);
+				System.out.println("Fps: " + fps + " | Ticks: " + updates + " | Entites: " + entities.size());
 				fps = 0;
 				updates = 0;
 			}
+		}
+		stop();
+	}
+	
+	public synchronized void start() {
+		isRunning = true;
+		thread = new Thread(this);
+		thread.start();
+	}
+	
+	public synchronized void stop() {
+		isRunning = false;
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	public static void main(String[] args) 
 	{
 		Game game = new Game();
-		Thread gameThread = new Thread(game);
-		gameThread.start();
+		game.start();
 	}
 	
 	public KeyboardListener getKeyListener() {
@@ -271,10 +238,6 @@ public class Game extends JFrame implements Runnable{
 		map.saveMap();
 	}
 	
-	//public GameObject[] getEntities() {
-	//	return entities;
-	//}
-	
 	public ArrayList<GameObject> getEntities() {
 		return entities;
 	}
@@ -296,11 +259,11 @@ public class Game extends JFrame implements Runnable{
 		}
 	}
 	
-	public ArrayList<GameObject> getRemovedEntities() {
+	public static ArrayList<GameObject> getRemovedEntities() {
 		return entitiesToRemove;
 	}
 	
-	public ArrayList<GameObject> getAddedEntities() {
+	public static ArrayList<GameObject> getAddedEntities() {
 		return entitiesToAdd;
 	}
 
@@ -313,12 +276,8 @@ public class Game extends JFrame implements Runnable{
 		return selectedTileID;
 	}
 	
-	public SpriteSheet getFireball() {
-		return fireball;
-	}
-	
-	public SpriteSheet getExplosion() {
-		return explosion;
+	public int getSelectedLayer() {
+		return selectedLayer;
 	}
 	
 	public Player getPlayer() {

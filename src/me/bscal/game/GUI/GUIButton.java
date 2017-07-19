@@ -1,9 +1,9 @@
 package me.bscal.game.GUI;
 
 import me.bscal.game.Game;
-import me.bscal.game.Rectangle;
-import me.bscal.game.Render;
 import me.bscal.game.entity.GameObject;
+import me.bscal.game.graphics.Rectangle;
+import me.bscal.game.graphics.Render;
 import me.bscal.game.sprites.Sprite;
 
 public abstract class GUIButton implements GameObject{

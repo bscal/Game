@@ -1,8 +1,8 @@
 package me.bscal.game.entity;
 
 import me.bscal.game.Game;
-import me.bscal.game.Rectangle;
-import me.bscal.game.Render;
+import me.bscal.game.graphics.Rectangle;
+import me.bscal.game.graphics.Render;
 
 public interface GameObject {
 
@@ -31,4 +31,6 @@ public interface GameObject {
 	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom);
 	
 	public Rectangle getRectangle();
+	
+	public int getLayer();
 }

@@ -6,9 +6,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import me.bscal.game.Game;
-import me.bscal.game.entity.Explosion;
-import me.bscal.game.entity.Fireball;
-import me.bscal.game.sprites.AnimatedSprite;
 
 public class KeyboardListener implements KeyListener, FocusListener{
 	
@@ -30,16 +27,12 @@ public class KeyboardListener implements KeyListener, FocusListener{
 		}
 		
 		if(key == KeyEvent.VK_SPACE && spacePressed == false) {
-			AnimatedSprite animatedFireball = new AnimatedSprite(game.getFireball(), 3);
-			Fireball spell = new Fireball(animatedFireball, game.getPlayer(), 5);
-			game.getAddedEntities().add(spell);
 			spacePressed = true;
 		}
 		
-		if(keys[KeyEvent.VK_CONTROL]) {
-			isCtrl = true;
+		if(keys[KeyEvent.VK_CONTROL] && keys[KeyEvent.VK_S]) {
+			saveGame();
 		}
-		saveGame();
 	}
 
 	@Override
@@ -103,12 +96,6 @@ public class KeyboardListener implements KeyListener, FocusListener{
 	}
 
 	private void saveGame() {
-		if(isCtrl) {
-			if(keys[KeyEvent.VK_S]) {
-				System.out.println("TEST");
-				game.saveGame();
-			}
-		}
+		game.saveGame();
 	}
-	
 }

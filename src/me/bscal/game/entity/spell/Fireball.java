@@ -3,6 +3,7 @@ package me.bscal.game.entity.spell;
 import me.bscal.game.Game;
 import me.bscal.game.entity.Player;
 import me.bscal.game.entity.projectile.MagicProjectile;
+import me.bscal.game.entity.spawner.ParticleSpawner;
 import me.bscal.game.graphics.Rectangle;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
@@ -11,7 +12,7 @@ import me.bscal.game.sprites.SpriteHandler;
 public class Fireball extends MagicProjectile{
 	
 	public Fireball(Sprite sprite, Player player, int animationLength, int x, int y, double angle) {
-		super(x, y, angle, 8);
+		super(x, y, angle);
 		super.sprite = sprite;
 		castRect = player.getRectangle();
 		
@@ -22,36 +23,35 @@ public class Fireball extends MagicProjectile{
 		direction = player.getDirection();
 		
 		if(direction == 3) {
-			layer = 2;
+			layer = 1;
 		}
 		maxLifespan = 50;
-		rect = new Rectangle(castRect.getCenterX(), castRect.getCenterY(), 1, 1);
-		collisionRect = new Rectangle(castRect.x, castRect.y, 16, 16);
+		speed = 12;
+		rect = new Rectangle(castRect.x + 2, castRect.y + 5, 16, 16);
+		launch();
 	}
 	
 	public void onDestroy(Game game) {
+		new ParticleSpawner(rect.getCenterX(), rect.getCenterY(), 45, 45);
 		AnimatedSprite animatedExplosion = new AnimatedSprite(SpriteHandler.explosion, 2);
 		Explosion spell = new Explosion(animatedExplosion, this, 5);
 		Game.getAddedEntities().add(spell);
+		remove();
 	}
 	
-	public void onCast(Game game) {
-		
-	}
+	public void onCast(Game game) {}
 
 	@Override
 	public void update(Game game) {
-		if(isRemoved()) {
+		if(lifespan > maxLifespan) {
 			onDestroy(game);
 		}
-		if(lifespan > maxLifespan) {
-			remove();
-		}
-		if(!checkCollision(game, collisionRect)) {
+		
+		if(!checkCollision(game, rect)) {	
 			move();
 		}
 		else {
-			remove();
+			onDestroy(game);
 		}
 //		boolean moved = false;
 //		collisionRect.x = rect.x;

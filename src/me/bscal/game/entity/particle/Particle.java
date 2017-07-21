@@ -39,23 +39,32 @@ public class Particle extends Entity{
 	@Override
 	public void update(Game game) {
 		time++;
+		
 		if(time > 9999) {
 			time = 0;
 		}
 		if(time > life) {
 			remove();
 		}
+		//Makes the particles move downwards.
+		za -= 0.1;
 		
-		if(!checkCollision(game, rect)) {
-			za -= 0.1;
-			if(zz > 0) {
-				zz = 0;
-				za *= -1;
-			}
-			xx += xa;
-			yy += ya;
-			zz += za;
+		//Adds a "Floor" to the particle and bounce off of.
+		if(zz < 0) {
+			zz = 0;
+			za *= -0.55;
+			xa *= 0.4;
+			ya *= 0.4;
 		}
+		//If particle has a collision reflex applies a force backwards.
+		if(checkCollision(game, rect)) {
+			xa *= -0.5;
+			ya *= -0.5;
+			za *= -0.5;
+		}
+		//Moves particle.
+		xx += xa;
+		yy += ya;
+		zz += za;
 	}
-
 }

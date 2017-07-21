@@ -5,14 +5,11 @@ import java.awt.Graphics;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import me.bscal.game.GUI.GUI;
@@ -29,7 +26,6 @@ import me.bscal.game.mapping.Tiles;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
-import me.bscal.game.sprites.SpriteSheet;
 
 public class Game extends JFrame implements Runnable{
 
@@ -37,7 +33,7 @@ public class Game extends JFrame implements Runnable{
 	 * 
 	 */
 	private static final long serialVersionUID = -7240204747443743168L;
-	public static int width = 1200;
+	public static int width = 900;
 	public static int height = width / 12 * 9;
 	public static final int SCALE = 2;
 	public static final int XZOOM = SCALE;
@@ -54,12 +50,15 @@ public class Game extends JFrame implements Runnable{
 	private Map map;
 	private KeyboardListener listener;
 	private MouseClickListener mouseListener;
-	private ArrayList<GameObject> entities = new ArrayList<GameObject>();
-	private static ArrayList<GameObject> entitiesToRemove = new ArrayList<GameObject>();
-	private static ArrayList<GameObject> entitiesToAdd = new ArrayList<GameObject>();
 	private Player player;
 	private int selectedTileID = 3;
 	private int selectedLayer = 2;
+	
+	private ArrayList<GameObject> entities = new ArrayList<GameObject>();
+	private static ArrayList<GameObject> entitiesToRemove = new ArrayList<GameObject>();
+	private static ArrayList<GameObject> entitiesToAdd = new ArrayList<GameObject>();
+	
+	private ArrayList<Integer> fpsList = new ArrayList<Integer>();
 	
 	public Game() {
 		this.setTitle("Game");
@@ -70,7 +69,7 @@ public class Game extends JFrame implements Runnable{
 		this.add(canvas);
 		this.pack();
 		this.setVisible(true);
-		canvas.createBufferStrategy(3);
+		canvas.createBufferStrategy(2);
 		renderer = new Render(canvas.getWidth(), canvas.getHeight());
 		init();
 	}
@@ -182,11 +181,24 @@ public class Game extends JFrame implements Runnable{
 				long memory = runtime.totalMemory() - runtime.freeMemory();
 			    System.out.println("Used memory in megabytes: " + memory/1048576);
 				System.out.println("Fps: " + fps + " | Ticks: " + updates + " | Entites: " + entities.size());
+				fpsList.add(fps);
 				fps = 0;
 				updates = 0;
 			}
 		}
 		stop();
+	}
+	
+	private void calculatePreformance() {
+		Collections.sort(fpsList);
+		Collections.reverse(fpsList);
+		int mean = 0;
+		for(int i : fpsList) {
+			mean += i;
+		}
+		System.out.println("Max FPS: " + fpsList.get(0));
+		System.out.println("Min FPS: " + fpsList.get(fpsList.size() - 1));
+		System.out.println("Mean FPS: " + mean/fpsList.size());
 	}
 	
 	public synchronized void start() {

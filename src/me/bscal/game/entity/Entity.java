@@ -48,9 +48,7 @@ public abstract class Entity implements GameObject{
 		}
 	}
 	
-	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom) {
-		return false;
-	}
+	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom) { return false; }
 	
 	public Rectangle getRectangle() {
 		return rect;

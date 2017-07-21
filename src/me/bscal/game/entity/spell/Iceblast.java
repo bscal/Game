@@ -7,9 +7,11 @@ import me.bscal.game.sprites.Sprite;
 
 public class Iceblast extends MagicProjectile{
 	
-	public Iceblast(Sprite sprite, Entity caster, int animationLength, int x, int y, double dir, double speed) {
-		super(sprite, caster, animationLength, x, y, dir, speed);
+	public Iceblast(Sprite sprite, Entity caster, int animationLength, int x, int y, double dir) {
+		super(sprite, caster, animationLength, x, y, dir);
 		maxLifespan = 35;
+		speed = 9;
+		launch();
 	}
 
 	@Override

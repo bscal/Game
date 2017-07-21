@@ -177,8 +177,8 @@ public class Map {
 						}
 					}
 					else if(type == 3) {
-						Rectangle tileRect = new Rectangle(tile.x * tileWidth, tile.y * tileHeight + tileHeight - 16, tileWidth, 16);
-						Rectangle newRect = new Rectangle(rect.x, rect.y + rect.height, rect.width, 1);
+						Rectangle tileRect = new Rectangle(tile.x * tileWidth, tile.y * tileHeight + tileHeight, tileWidth, 16);
+						Rectangle newRect = new Rectangle(rect.x, rect.y + rect.height, rect.width, 2);
 						if(tileRect.intersects(newRect)) {
 							return true;
 						}

@@ -1,7 +1,6 @@
 package me.bscal.game.entity;
 
 import me.bscal.game.Game;
-import me.bscal.game.entity.spawner.ParticleSpawner;
 import me.bscal.game.entity.spell.Fireball;
 import me.bscal.game.entity.spell.Iceblast;
 import me.bscal.game.graphics.Rectangle;
@@ -27,11 +26,10 @@ public class Player extends Entity implements GameObject{
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
-		
+		layer = 1;
 		updateDirection();
 		rect = new Rectangle(0, 0, 20, 26);
 		collisionRect = new Rectangle(0, 0, 10*Game.XZOOM, 18*Game.YZOOM);
-		new ParticleSpawner(0, 0, 50, 50);
 	}
 	
 	@Override
@@ -117,8 +115,10 @@ public class Player extends Entity implements GameObject{
 	private void playerActions(Game game, KeyboardListener keyboard, MouseClickListener mouse) {
 		if(mouse.getButton() == 1 && !getCooldown("fireball")) {
 			AnimatedSprite animatedFireball = new AnimatedSprite(SpriteHandler.fireball, 3);
+			
 			Fireball spell = new Fireball(animatedFireball, game.getPlayer(), 5, rect.x + 10, rect.y + 14, 
 					getProjDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
+			
 			Game.getAddedEntities().add(spell);
 			this.projectiles.add(spell);
 			cooldowns.add(new Cooldown("fireball", this, 5));
@@ -126,8 +126,9 @@ public class Player extends Entity implements GameObject{
 		
 		else if(mouse.getButton() == 3 && !getCooldown("iceblast")) {
 			AnimatedSprite animatedFrostbolt = new AnimatedSprite(SpriteHandler.frostbolt, 2);
+			
 			Iceblast spell = new Iceblast(animatedFrostbolt, this, 5, rect.x, rect.y, 
-					getProjDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0), 9);
+					getProjDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
 			
 			Game.getAddedEntities().add(spell);
 			this.projectiles.add(spell);

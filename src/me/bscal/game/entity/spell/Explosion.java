@@ -27,18 +27,11 @@ public class Explosion extends Spell {
 		if(animatedSprite.getTotalUpdates() > animatedSprite.getEndSprite()) {
 			Game.getRemovedEntities().add(this);
 		}
-		
 	}
-
-	@Override
-	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom) { return false; }
 
 	@Override
 	public void onDestroy(Game game) {}
 
 	@Override
-	public void onCast(Game game) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onCast(Game game) {}
 }

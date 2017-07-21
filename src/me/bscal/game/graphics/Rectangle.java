@@ -6,7 +6,7 @@ import me.bscal.game.entity.Entity;
 public class Rectangle {
 	
 	public int x,y,height,width;
-	private boolean isSolid = false;	//If false allows flying objects to not collide with it.
+	public double xx, yy;
 	private Entity owner;				//Used to get the owner of the rectangle.
 	private int[] pixels;
 	
@@ -92,10 +92,6 @@ public class Rectangle {
 			return owner;
 		}
 		return null;
-	}
-	
-	public boolean isSolid() {
-		return isSolid;
 	}
 	
 	public int[] getPixels() {

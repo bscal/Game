@@ -1,7 +1,7 @@
 package me.bscal.game.entity.spell;
 
 import me.bscal.game.Game;
-import me.bscal.game.entity.Player;
+import me.bscal.game.entity.Entity;
 import me.bscal.game.entity.projectile.MagicProjectile;
 import me.bscal.game.entity.spawner.ParticleSpawner;
 import me.bscal.game.graphics.Rectangle;
@@ -11,20 +11,23 @@ import me.bscal.game.sprites.SpriteHandler;
 
 public class Fireball extends MagicProjectile{
 	
-	public Fireball(Sprite sprite, Player player, int animationLength, int x, int y, double angle) {
+	public Fireball(Sprite sprite, Entity entity, int animationLength, int x, int y, double angle) {
 		super(x, y, angle);
 		super.sprite = sprite;
-		castRect = player.getRectangle();
+		caster = entity;
+		castRect = entity.getRectangle();
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
 		
-		direction = player.getDirection();
+		direction = entity.getDirection();
 		
-		if(direction == 3) {
-			layer = 1;
-		}
+//		if(direction == 3) {
+//			layer = 1;
+//		}
+		
+		name = "fireball";
 		maxLifespan = 50;
 		speed = 12;
 		rect = new Rectangle(castRect.x + 2, castRect.y + 5, 16, 16);

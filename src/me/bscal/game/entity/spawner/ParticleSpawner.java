@@ -13,4 +13,6 @@ public class ParticleSpawner extends Spawner{
 			Game.getAddedEntities().add(p);
 		}
 	}
+
+	public void update(Game game) {}
 }

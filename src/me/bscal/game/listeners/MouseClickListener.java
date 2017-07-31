@@ -5,6 +5,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import me.bscal.game.Game;
+import me.bscal.game.entity.GameObject;
+import me.bscal.game.graphics.Rectangle;
 
 public class MouseClickListener implements MouseListener, MouseMotionListener{
 
@@ -48,16 +50,14 @@ public class MouseClickListener implements MouseListener, MouseMotionListener{
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		button = e.getButton();
 		x = e.getX();
 		y = e.getY();
-		button = e.getButton();
-//		x = e.getX();
-//		y = e.getY();
 //		if(e.getButton() == MouseEvent.BUTTON1) {	//LeftClick Sets Tile
 //			Rectangle mouseRectangle = new Rectangle(x, y, 1, 1);
 //			boolean clicked = false;
 //			
-//			for(GameObject entity : game.getEntities()) {
+//			for(GameObject entity : Game.getEntities()) {
 //				if(!clicked) {
 //					clicked = entity.handleMouseClick(mouseRectangle, game.getRenderer().getCamera(), game.getXZoom(), game.getYZoom());
 //				}

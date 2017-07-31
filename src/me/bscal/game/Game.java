@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JFrame;
 
@@ -17,6 +18,8 @@ import me.bscal.game.GUI.GUIButton;
 import me.bscal.game.GUI.SDKButton;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
+import me.bscal.game.entity.mob.Archer;
+import me.bscal.game.entity.mob.Dummy;
 import me.bscal.game.graphics.Rectangle;
 import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
@@ -26,6 +29,7 @@ import me.bscal.game.mapping.Tiles;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
+import me.bscal.game.util.Font;
 
 public class Game extends JFrame implements Runnable{
 
@@ -35,12 +39,10 @@ public class Game extends JFrame implements Runnable{
 	private static final long serialVersionUID = -7240204747443743168L;
 	public static int width = 900;
 	public static int height = width / 12 * 9;
-	public static final int SCALE = 2;
-	public static final int XZOOM = SCALE;
-	public static final int YZOOM = SCALE;
-	public static int alpha = 0xFFCCFF00; //0xFF defines Hex color codes
-	public final int TARGET_FPS = 30;
-	public final String path = "resources/img/";
+	public static final int XZOOM = 2;
+	public static final int YZOOM = 2;
+	public static final int ALPHA = 0xFFCCFF00; //0xFF defines Hex color codes
+	public static final String PATH = "resources/img/";
 	
 	private Thread thread;
 	private boolean isRunning = false;
@@ -48,16 +50,16 @@ public class Game extends JFrame implements Runnable{
 	private Render renderer;
 	private Tiles tiles;
 	private Map map;
+	private Font font;
 	private KeyboardListener listener;
 	private MouseClickListener mouseListener;
 	private Player player;
 	private int selectedTileID = 3;
-	private int selectedLayer = 2;
+	private int selectedLayer = 0;
 	
-	private ArrayList<GameObject> entities = new ArrayList<GameObject>();
-	private static ArrayList<GameObject> entitiesToRemove = new ArrayList<GameObject>();
-	private static ArrayList<GameObject> entitiesToAdd = new ArrayList<GameObject>();
-	
+	private static List<GameObject> entities = new ArrayList<GameObject>();
+	private static List<GameObject> entitiesToRemove = new ArrayList<GameObject>();
+	private static List<GameObject> entitiesToAdd = new ArrayList<GameObject>();
 	private ArrayList<Integer> fpsList = new ArrayList<Integer>();
 	
 	public Game() {
@@ -85,7 +87,7 @@ public class Game extends JFrame implements Runnable{
 		File mapFile = new File(Game.class.getResource("resources/Map.txt").getPath());
 		tiles = new Tiles(tilesFile, SpriteHandler.tileSheet);
 		map = new Map(mapFile, tiles);
-		
+		font = new Font();
 		//Load GUI and SDKButtonGUI
 		GUIButton[] buttons = new GUIButton[tiles.size()];
 		Sprite[] tileList = tiles.getSprites();
@@ -98,6 +100,11 @@ public class Game extends JFrame implements Runnable{
 		//Initialize entities
 		AnimatedSprite animatedPlayer = new AnimatedSprite(SpriteHandler.playerSheet, 3);
 		player = new Player(animatedPlayer, 8);
+		for(int i = 0; i < 1; i++) {
+			//entitiesToAdd.add(new Zombie(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
+			entitiesToAdd.add(new Archer());
+			entitiesToAdd.add(new Dummy(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
+		}
 		entities.add(player);
 		entities.add(gui);
 		//Initialize listeners
@@ -133,8 +140,8 @@ public class Game extends JFrame implements Runnable{
 	}
 	
 	public void update() {
-		for(GameObject entity : entities) {
-			entity.update(this);
+		for(int i = 0; i < entities.size(); i++) {
+			entities.get(i).update(this);
 		}
 		updateEntities();
 	}
@@ -144,12 +151,9 @@ public class Game extends JFrame implements Runnable{
 		Graphics g = bufferStrategy.getDrawGraphics();
 		
 		map.render(renderer, getEntities(), XZOOM, YZOOM);
-		//for(GameObject entity : entities) {
-		//	entity.render(renderer, XZOOM, YZOOM);
-		//}
-		
+		font.render("Hello! How is your day? \nGood.", 50, 50, 0, 3252, renderer, XZOOM, YZOOM);
 		renderer.render(g);
-		
+	
 		g.dispose();
 		bufferStrategy.show();
 		renderer.clear();
@@ -161,7 +165,7 @@ public class Game extends JFrame implements Runnable{
 		int fps = 0;
 		int updates = 0;
 		long timer = System.currentTimeMillis();
-		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
+		final long OPTIMAL_TIME = 1000000000 / 30;
 	
 		while(isRunning) {
 			long now = System.nanoTime();
@@ -174,7 +178,6 @@ public class Game extends JFrame implements Runnable{
 			}
 			render();
 			fps++;
-			
 			if(System.currentTimeMillis() - timer > 1000L) {
 				timer += 1000L;
 				Runtime runtime = Runtime.getRuntime();
@@ -193,7 +196,7 @@ public class Game extends JFrame implements Runnable{
 		Collections.sort(fpsList);
 		Collections.reverse(fpsList);
 		int mean = 0;
-		for(int i : fpsList) {
+		for(int i = 0; i < fpsList.size(); i++) {
 			mean += i;
 		}
 		System.out.println("Max FPS: " + fpsList.get(0));
@@ -250,7 +253,7 @@ public class Game extends JFrame implements Runnable{
 		map.saveMap();
 	}
 	
-	public ArrayList<GameObject> getEntities() {
+	public static List<GameObject> getEntities() {
 		return entities;
 	}
 	
@@ -271,11 +274,11 @@ public class Game extends JFrame implements Runnable{
 		}
 	}
 	
-	public static ArrayList<GameObject> getRemovedEntities() {
+	public static List<GameObject> getRemovedEntities() {
 		return entitiesToRemove;
 	}
 	
-	public static ArrayList<GameObject> getAddedEntities() {
+	public static List<GameObject> getAddedEntities() {
 		return entitiesToAdd;
 	}
 
@@ -292,8 +295,17 @@ public class Game extends JFrame implements Runnable{
 		return selectedLayer;
 	}
 	
-	public Player getPlayer() {
-		return player;
+	public Player getPlayer(int id) {
+		List<Player> players = new ArrayList<Player>();
+		for(int i = 0; i < entities.size(); i++) {
+			if(entities.get(i) instanceof Player) {
+				players.add((Player) entities.get(i));
+			}
+		}
+		if(id == -1) {
+			return players.get(0);
+		}
+		return players.get(id);
 	}
 	
 }

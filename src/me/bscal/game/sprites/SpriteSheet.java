@@ -73,5 +73,4 @@ public class SpriteSheet {
 		System.out.println("No sprites loaded!");
 		return null;
 	}
-	
 }

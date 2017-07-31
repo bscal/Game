@@ -26,7 +26,7 @@ public class Iceblast extends MagicProjectile{
 			remove();
 		}
 		lifespan++;
-		animatedSprite.update(game);
+		//animatedSprite.update(game);
 	}
 
 }

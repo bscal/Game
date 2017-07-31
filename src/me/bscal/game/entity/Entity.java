@@ -12,7 +12,7 @@ import me.bscal.game.sprites.Sprite;
 import me.bscal.game.util.Cooldown;
 
 public abstract class Entity implements GameObject{
-
+	
 	protected ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 	protected ArrayList<Cooldown> cooldowns = new ArrayList<Cooldown>();
 	
@@ -20,15 +20,19 @@ public abstract class Entity implements GameObject{
 	protected Rectangle rect;
 	protected Sprite sprite;
 	protected AnimatedSprite animatedSprite = null;
-	protected int layer;
 	private boolean removed = false;
 	protected boolean isInvulnerable = false;
 	protected boolean isCollidable = true;
-	protected int direction = 0;	//Right, Left, Up, Down
+	protected int layer = 0;
+	protected int direction = 0;	//0 = Right,1 = Left,2 = Up,3 = Down
 	protected int animationLength = 0;
 	protected double health, speed;
 	
 	public Entity() {}
+	
+	public void init() {
+		Game.getEntities().add(this);
+	}
 	
 	protected void updateDirection() {
 		if(animatedSprite != null) {
@@ -62,6 +66,10 @@ public abstract class Entity implements GameObject{
 		return name;
 	}
 	
+	public Sprite getSprite() {
+		return animatedSprite;
+	}
+	
 	public void remove() {
 		Game.getRemovedEntities().add(this);
 		removed = true;
@@ -87,7 +95,10 @@ public abstract class Entity implements GameObject{
 		return true;
 	}
 	
-	protected double getProjDirection(double targetX, double targetY, double srcX, double srcY) {
+	/**
+	 * @return The angle of 2 positions.
+	 */
+	protected double getProjectileDirection(double targetX, double targetY, double srcX, double srcY) {
 		double dx = targetX - srcX;
 		double dy = targetY - srcY;
 		double dir = Math.atan2(dy, dx);
@@ -111,13 +122,22 @@ public abstract class Entity implements GameObject{
 		}
 	}
 	
-	protected boolean getCooldown(String s) {
-		for(Cooldown cd : cooldowns) {
-			if(s == cd.getId()) {
+	protected boolean isOnCooldown(String s) {
+		for(int i = 0; i < cooldowns.size(); i++) {
+			if(s == cooldowns.get(i).getId()) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public Cooldown getCooldown(String s) {
+		for(int i = 0; i < cooldowns.size(); i++) {
+			if(s == cooldowns.get(i).getId()) {
+				return cooldowns.get(i);
+			}
+		}
+		return null;
 	}
 	
 }

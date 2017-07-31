@@ -6,8 +6,8 @@ import me.bscal.game.entity.Entity;
 public class Rectangle {
 	
 	public int x,y,height,width;
-	public double xx, yy;
-	private Entity owner;				//Used to get the owner of the rectangle.
+	public double dx, dy;
+	private Entity owner;
 	private int[] pixels;
 	
 	public Rectangle() {
@@ -54,7 +54,7 @@ public class Rectangle {
 		pixels = new int[width * height];
 		
 		for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = Game.alpha;
+			pixels[i] = Game.ALPHA;
 		}
 		
 		for(int y = 0; y < borderWidth; y++) {					//Top

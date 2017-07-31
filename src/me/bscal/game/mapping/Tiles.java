@@ -29,15 +29,15 @@ public class Tiles {
 					
 					if(split.length >= 4) {
 						tile.collisionType = Integer.parseInt(split[3]);
-						if(tile.collisionType != -1) {
-							tile.collidable = true;
-						}
-						if(split.length >= 5) {
-							tile.solidType = Integer.parseInt(split[4]);
-							if(tile.solidType == 1) {
-								tile.isSolid = false;
-							}
-						}
+//						if(tile.collisionType != -1) {
+//							tile.collidable = true;
+//						}
+//						if(split.length >= 5) {
+//							tile.solidType = Integer.parseInt(split[4]);
+//							if(tile.solidType == 1) {
+//								tile.isSolid = false;
+//							}
+//						}
 					}
 					tileList.add(tile);
 				}			
@@ -81,12 +81,23 @@ public class Tiles {
 		return -1;
 	}
 	
+	public boolean isSolid(int tileID) {
+		if(tileList.size() > tileID) {
+			Tile tile = tileList.get(tileID);
+			if(tile.collisionType >= 0) {
+				return true;
+			}
+		}
+		else {
+			System.out.println("Tile Collision: TileID out of bounds: " + tileID);
+		}
+		return false;
+	}
+	
 	class Tile {
 		public String tileName;
 		public Sprite sprite;
-		public boolean collidable = false;
-		public boolean isSolid = true;
-		public int solidType = 0;	//0 = Tile is solid, 1 = Tile is not solid.
+		public boolean solid;
 		public int collisionType = -1; //-1 = Tile has no collision.
 		
 		public Tile(String tileName, Sprite sprite) {

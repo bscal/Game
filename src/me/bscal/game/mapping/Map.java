@@ -5,19 +5,35 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
 import me.bscal.game.Game;
+import me.bscal.game.GUI.GUI;
+import me.bscal.game.entity.Entity;
 import me.bscal.game.entity.GameObject;
+import me.bscal.game.entity.Player;
+import me.bscal.game.entity.particle.Particle;
+import me.bscal.game.entity.projectile.Projectile;
 import me.bscal.game.graphics.Rectangle;
 import me.bscal.game.graphics.Render;
+import me.bscal.game.util.Vector2i;
 
 public class Map {
 
 	private Scanner scanner;
 	private Tiles tileSet;
 	private int fillID = -1;
+	
+	private Comparator<Node> nodeSorter = new Comparator<Node>() {
+		public int compare(Node n0, Node n1) {
+			if(n1.fCost < n0.fCost) return 1;
+			if(n1.fCost > n0.fCost) return -1;
+			return 0;
+		}
+	};
 	
 	private List<MappedTile> mappedTiles = new ArrayList<MappedTile>();
 	private GridBlock[][] grids;
@@ -307,7 +323,7 @@ public class Map {
 		}	
 	}
 	
-	public void render(Render renderer, ArrayList<GameObject> entities, int xZoom, int yZoom) {
+	public void render(Render renderer, List<GameObject> entities, int xZoom, int yZoom) {
 		if(fillID >= 0) {
 			Rectangle camera = renderer.getCamera();
 			for(int y = camera.y - yIncrement - (camera.y % yIncrement); y < camera.y + camera.height; y += yIncrement) {
@@ -378,8 +394,100 @@ public class Map {
 
 	}
 	
+	public List<Node> findPath(Vector2i start, Vector2i end) {
+		List<Node> openList = new ArrayList<Node>();
+		List<Node> closedList = new ArrayList<Node>();
+		Node current = new Node(start, null, 0, getDistance(start, end));
+		openList.add(current);
+		
+		while(openList.size() > 0) {
+			Collections.sort(openList, nodeSorter);
+			current = openList.get(0);
+			if(current.tile.equals(end)) {
+				List<Node> path = new ArrayList<Node>();
+				while(current.parent != null) {
+					path.add(current);
+					current = current.parent;
+				}
+				openList.clear();
+				closedList.clear();
+				return path;
+			}
+			openList.remove(current);
+			closedList.add(current);
+			for(int i = 0; i < 9; i++) {
+				if(i == 4) continue;
+				int x = current.tile.getX();
+				int y = current.tile.getY();
+				int xDir = (i % 3) - 1;
+				int yDir = (i / 3) - 1;
+				MappedTile newTile = getTile(0, x + xDir, y + yDir);
+				if(newTile == null) continue;
+				if(tileSet.isSolid(newTile.id)) continue;
+				Vector2i newVector = new Vector2i(x + xDir, y + yDir);
+				double gCost = current.gCost + (getDistance(current.tile, newVector) == 1 ? 1 : 0.95);
+				double hCost = getDistance(newVector, end);
+				Node node = new Node(newVector, current, gCost, hCost);
+				if(isVectorInList(closedList, newVector) && gCost >= node.gCost) continue;
+				if(!isVectorInList(openList, newVector) || gCost < node.gCost) {
+					openList.add(node);
+				}
+			}
+		}
+		closedList.clear();
+		return null;
+	}
+	
+	private boolean isVectorInList(List<Node> list, Vector2i v) {
+		for(int i = 0; i < list.size(); i++ ) {
+			if(list.get(i).tile.equals(v)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private double getDistance(Vector2i start, Vector2i end) {
+		double dx = start.getX() - end.getX();
+		double dy = start.getY() - end.getY();
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+	
+	public List<Entity> getNearbyEntities(Entity e, int radius) {
+		List<Entity> result = new ArrayList<Entity>();
+		Rectangle rect = e.getRectangle();
+		for(int i = 0; i < Game.getEntities().size(); i++) {
+			GameObject o = Game.getEntities().get(i);
+			if(o instanceof GUI || o instanceof Particle || o instanceof Projectile) continue;
+			Entity entity = (Entity) Game.getEntities().get(i);
+			if(entity == e) continue;
+			Rectangle entityRect = entity.getRectangle();
+			
+			int distanceX = entityRect.x - rect.x;
+			int distanceY = entityRect.y - rect.y;
+			double distance = Math.sqrt((distanceX * distanceX) + (distanceY * distanceY));
+			
+			if(distance <= radius) {
+				result.add(entity);
+			}
+		}
+		return result;
+	}
+	
+	public List<Player> getNearbyPlayers(Entity e, int radius) {
+		List<Entity> entities = getNearbyEntities(e, radius);
+		List<Player> result = new ArrayList<Player>();
+		for(int i = 0; i < entities.size(); i++) {
+			if(entities.get(i) instanceof Player && entities.get(i) != e) {
+				result.add((Player) entities.get(i));
+			}
+		}
+		return result;
+	}
+	
 	class MappedTile {
 		public int layer, id, x, y;
+		public boolean solid;
 		
 		public MappedTile(int layer, int id, int x, int y) {
 			this.layer = layer;

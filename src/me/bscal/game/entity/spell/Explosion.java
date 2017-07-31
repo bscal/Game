@@ -19,6 +19,7 @@ public class Explosion extends Spell {
 		}
 		layer = 1;
 		rect = new Rectangle(castRect.x, castRect.y, 36, 36);
+
 	}
 
 	@Override
@@ -28,10 +29,4 @@ public class Explosion extends Spell {
 			Game.getRemovedEntities().add(this);
 		}
 	}
-
-	@Override
-	public void onDestroy(Game game) {}
-
-	@Override
-	public void onCast(Game game) {}
 }

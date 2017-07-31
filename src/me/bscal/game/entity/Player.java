@@ -4,7 +4,6 @@ import me.bscal.game.Game;
 import me.bscal.game.entity.spell.Fireball;
 import me.bscal.game.entity.spell.Iceblast;
 import me.bscal.game.graphics.Rectangle;
-import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.game.listeners.MouseClickListener;
 import me.bscal.game.sprites.AnimatedSprite;
@@ -12,37 +11,23 @@ import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
 import me.bscal.game.util.Cooldown;
 
-public class Player extends Entity implements GameObject{
-	
-	private Rectangle collisionRect;
-	private int xCollisionOffset = 14;
-	private int yCollisionOffset = 20;
+public class Player extends HumanEntity{
 	
 	public Player(Sprite sprite, int animationLength) {
 		this.sprite = sprite;
 		this.animationLength = animationLength;
-		speed = 8;
+		this.speed = 15;
+		this.layer = 1;
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
-		layer = 1;
+		
 		updateDirection();
 		rect = new Rectangle(0, 0, 20, 26);
 		collisionRect = new Rectangle(0, 0, 10*Game.XZOOM, 18*Game.YZOOM);
-	}
-	
-	@Override
-	public void render(Render renderer, int xZoom, int yZoom) {
-		if(animatedSprite != null) {
-			renderer.renderSprite(animatedSprite, rect.x, rect.y, xZoom, yZoom, false);
-		}
-		else if(sprite != null) {
-			renderer.renderSprite(sprite, rect.x, rect.y, xZoom, yZoom, false);
-		}
-		else {
-			renderer.renderRectangle(rect, xZoom, yZoom, false);
-		}
+		xCollisionOffset = 14;
+		yCollisionOffset = 20;
 	}
 
 	@Override
@@ -63,7 +48,6 @@ public class Player extends Entity implements GameObject{
 		boolean moved = false;
 		int newDirection = direction;
 		
-		//Handles player movement based on key pressed
 		if(keyboard.left()) {
 			collisionRect.x -= speed;
 			newDirection = 1;
@@ -87,22 +71,15 @@ public class Player extends Entity implements GameObject{
 			moved = true;
 		}
 		
-		//Updates Direction if there is a new direction
 		if(newDirection != direction) {
 			direction = newDirection;
 			updateDirection();
 		}
 		
-		//Checks Collision if the player moved
-		if(moved) {			
+		if(moved) {	
 			collisionRect.x += xCollisionOffset;
 			collisionRect.y += yCollisionOffset;
-			if(!game.getMap().checkCollision(collisionRect, layer, game.getXZoom(), game.getYZoom())
-					&& !game.getMap().checkCollision(collisionRect, layer + 1, game.getXZoom(), game.getYZoom()) 
-					&& !game.getMap().checkCollision(collisionRect, layer + 2, game.getXZoom(), game.getYZoom())) {
-				rect.x = collisionRect.x - xCollisionOffset;
-				rect.y = collisionRect.y - yCollisionOffset;
-			}
+			checkCollision(game);
 			animatedSprite.update(game);
 		}
 		else {
@@ -110,25 +87,23 @@ public class Player extends Entity implements GameObject{
 		}
 	}
 
-	
-	//Applies actions that player did during this update
 	private void playerActions(Game game, KeyboardListener keyboard, MouseClickListener mouse) {
-		if(mouse.getButton() == 1 && !getCooldown("fireball")) {
+		if(mouse.getButton() == 1 && !isOnCooldown("fireball")) {
 			AnimatedSprite animatedFireball = new AnimatedSprite(SpriteHandler.fireball, 3);
 			
-			Fireball spell = new Fireball(animatedFireball, game.getPlayer(), 5, rect.x + 10, rect.y + 14, 
-					getProjDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
+			Fireball spell = new Fireball(animatedFireball, this, 5, rect.x, rect.y, 
+					getProjectileDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
 			
 			Game.getAddedEntities().add(spell);
 			this.projectiles.add(spell);
 			cooldowns.add(new Cooldown("fireball", this, 5));
 		}
 		
-		else if(mouse.getButton() == 3 && !getCooldown("iceblast")) {
+		else if(mouse.getButton() == 3 && !isOnCooldown("iceblast")) {
 			AnimatedSprite animatedFrostbolt = new AnimatedSprite(SpriteHandler.frostbolt, 2);
 			
 			Iceblast spell = new Iceblast(animatedFrostbolt, this, 5, rect.x, rect.y, 
-					getProjDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
+					getProjectileDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
 			
 			Game.getAddedEntities().add(spell);
 			this.projectiles.add(spell);
@@ -137,12 +112,8 @@ public class Player extends Entity implements GameObject{
 	}
 	
 	public void updateCamera(Game game, Rectangle camera) {
-		camera.x = rect.x + (rect.width/2*Game.SCALE) - (camera.width / 2);
-		camera.y = rect.y + (rect.height/2*Game.SCALE) - (camera.height / 2);
-	}
-	
-	public int getDirection() {
-		return direction;
+		camera.x = rect.x + (rect.width/2*Game.XZOOM) - (camera.width / 2);
+		camera.y = rect.y + (rect.height/2*Game.YZOOM) - (camera.height / 2);
 	}
 }
 

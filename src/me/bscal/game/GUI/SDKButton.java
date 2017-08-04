@@ -12,10 +12,9 @@ public class SDKButton extends GUIButton{
 	private int tileID;
 	private boolean isSelected = false;
 	
-	public SDKButton(Game game, int tileID, Sprite sprite, Rectangle rect) {
+	public SDKButton(int tileID, Sprite sprite, Rectangle rect) {
 		super(sprite, rect, true);
 		rect.createGraphics(defaultColor);
-		this.game = game;
 		this.tileID = tileID;
 	}
 	
@@ -55,6 +54,11 @@ public class SDKButton extends GUIButton{
 	
 	public int getLayer() {
 		return Integer.MAX_VALUE;
+	}
+	
+	public SDKButton setGameInstance(Game game) {
+		this.game = game;
+		return this;
 	}
 
 }

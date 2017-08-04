@@ -3,10 +3,13 @@ package me.bscal.game.entity;
 import java.awt.Font;
 
 import me.bscal.game.Game;
+import me.bscal.game.GUI.GUIButton;
+import me.bscal.game.GUI.GUIButtonComponent;
 import me.bscal.game.GUI.GUILoadingBar;
 import me.bscal.game.GUI.GUIManager;
 import me.bscal.game.GUI.GUIPanel;
 import me.bscal.game.GUI.GUIText;
+import me.bscal.game.GUI.SDKButton;
 import me.bscal.game.entity.spell.Fireball;
 import me.bscal.game.entity.spell.Iceblast;
 import me.bscal.game.graphics.Rectangle;
@@ -24,9 +27,8 @@ public class Player extends LivingEntity{
 	private GUILoadingBar manaBar;
 	private GUIText hpText;
 	private GUIText manaText;
-	private int time = 0;
 	
-	public Player(Sprite sprite, int animationLength) {
+	public Player(Game game, Sprite sprite, int animationLength) {
 		this.sprite = sprite;
 		this.animationLength = animationLength;
 		this.layer = 1;
@@ -58,6 +60,16 @@ public class Player extends LivingEntity{
 		manaText.setColor(0xffffffff);
 		manaText.setFont(barFont);
 		manaText.setParent(panel);
+		
+		
+		GUIButton[] buttons = new GUIButton[game.getTiles().size()];
+		Sprite[] tileList = game.getTiles().getSprites();
+		for(int i = 0; i < buttons.length; i++) {
+			Rectangle tileRect = new Rectangle(0, i*(16 * Game.XZOOM + 2), 16*Game.XZOOM, 16*Game.YZOOM);
+			buttons[i] = new SDKButton(i, tileList[i], tileRect).setGameInstance(game);
+		}
+		GUIButtonComponent buttonGUI = new GUIButtonComponent(buttons, 5, 5, true);
+		panel.add(buttonGUI);
 		gui.add(panel);
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
@@ -69,7 +81,7 @@ public class Player extends LivingEntity{
 		
 		//Player Default Stats
 		speed = 8;
-		health = 25;
+		health = maxHealth;
 		mana = maxMana;
 	}
 
@@ -136,7 +148,7 @@ public class Player extends LivingEntity{
 			AnimatedSprite animatedFireball = new AnimatedSprite(SpriteHandler.fireball, 3);
 			
 			Fireball spell = new Fireball(animatedFireball, this, 5, rect.x, rect.y, 
-					getProjectileDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
+					getProjectileDirection(mouse.getX(), mouse.getY(), game.getRenderer().getCamera().width/2.0, game.getRenderer().getCamera().height/2.0));
 			
 			Game.getAddedEntities().add(spell);
 			this.projectiles.add(spell);
@@ -147,7 +159,7 @@ public class Player extends LivingEntity{
 			AnimatedSprite animatedFrostbolt = new AnimatedSprite(SpriteHandler.frostbolt, 2);
 			
 			Iceblast spell = new Iceblast(animatedFrostbolt, this, 5, rect.x, rect.y, 
-					getProjectileDirection(mouse.getX(), mouse.getY(), Game.width/2.0, Game.height/2.0));
+					getProjectileDirection(mouse.getX(), mouse.getY(), game.getRenderer().getCamera().width/2.0, game.getRenderer().getCamera().height/2.0));
 			
 			Game.getAddedEntities().add(spell);
 			this.projectiles.add(spell);
@@ -157,7 +169,7 @@ public class Player extends LivingEntity{
 	
 	private void updatePlayer(Game game) {
 		health += .5;
-		if(health == maxHealth) {
+		if(health >= maxHealth) {
 			health = 0;
 		}
 		hpBar.setProgress(health/maxHealth);

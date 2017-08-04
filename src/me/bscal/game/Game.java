@@ -13,24 +13,18 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-import me.bscal.game.GUI.GUIButton;
-import me.bscal.game.GUI.GUIButtonComponent;
 import me.bscal.game.GUI.GUIManager;
-import me.bscal.game.GUI.GUIPanel;
-import me.bscal.game.GUI.GUIText;
-import me.bscal.game.GUI.SDKButton;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
 import me.bscal.game.entity.mob.Archer;
 import me.bscal.game.entity.mob.Dummy;
-import me.bscal.game.graphics.Rectangle;
+import me.bscal.game.entity.mob.Zombie;
 import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.game.listeners.MouseClickListener;
 import me.bscal.game.mapping.Map;
 import me.bscal.game.mapping.Tiles;
 import me.bscal.game.sprites.AnimatedSprite;
-import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
 
 public class Game extends JFrame implements Runnable{
@@ -94,21 +88,14 @@ public class Game extends JFrame implements Runnable{
 		GUIManager = new GUIManager();
 		
 		//Load GUI and SDKButtonGUI
-//		GUIButton[] buttons = new GUIButton[tiles.size()];
-//		Sprite[] tileList = tiles.getSprites();
-//		for(int i = 0; i < buttons.length; i++) {
-//			Rectangle tileRect = new Rectangle(0, i*(16 * XZOOM + 2), 16*XZOOM, 16*YZOOM);
-//			buttons[i] = new SDKButton(this, i, tileList[i], tileRect);
-//		}
-//		GUIButtonComponent gui = new GUIButtonComponent(buttons, 5, 5, true);
-
+		
 		//Initialize entities
 		AnimatedSprite animatedPlayer = new AnimatedSprite(SpriteHandler.playerSheet, 3);
-		player = new Player(animatedPlayer, 8);
+		player = new Player(this, animatedPlayer, 8);
 		for(int i = 0; i < 1; i++) {
-			//entitiesToAdd.add(new Zombie(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
-			entitiesToAdd.add(new Archer());
-			entitiesToAdd.add(new Dummy(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
+			entitiesToAdd.add(new Zombie(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
+			//entitiesToAdd.add(new Archer());
+			//entitiesToAdd.add(new Dummy(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
 		}
 		entities.add(player);
 		
@@ -300,6 +287,10 @@ public class Game extends JFrame implements Runnable{
 	
 	public static GUIManager getGUI() {
 		return GUIManager;
+	}
+	
+	public Tiles getTiles() {
+		return tiles;
 	}
 	
 	public Player getPlayer(int id) {

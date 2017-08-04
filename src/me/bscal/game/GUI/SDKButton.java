@@ -18,14 +18,12 @@ public class SDKButton extends GUIButton{
 		this.game = game;
 		this.tileID = tileID;
 	}
-
-	@Override
+	
 	public void render(Render renderer, int xZoom, int yZoom) {
 		renderer.renderRectangle(super.getRect(), xZoom, yZoom, super.isFixed());
 		renderer.renderSprite(super.getSprite(), super.getRect().x, super.getRect().y, xZoom, yZoom, super.isFixed());
 	}
 	
-	@Override
 	public void render(Render renderer, int xZoom, int yZoom, Rectangle interfaceRectangle) {
 		renderer.renderRectangle(super.getRect(), interfaceRectangle, 1, 1, super.isFixed());
 		renderer.renderSprite(super.getSprite(),
@@ -34,7 +32,6 @@ public class SDKButton extends GUIButton{
 				xZoom - 1, yZoom - 1, super.isFixed());
 	}
 	
-	@Override
 	public void update(Game game) {
 		if(tileID == game.getSelectedTileID()) {
 			if(!isSelected) {
@@ -48,12 +45,10 @@ public class SDKButton extends GUIButton{
 		}
 	}
 	
-	@Override
 	public void activate() {
 		game.setSelectedTile(tileID);
 	}
 
-	@Override
 	public Rectangle getRectangle() {
 		return super.getRect();
 	}

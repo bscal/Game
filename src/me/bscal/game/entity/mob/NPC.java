@@ -3,11 +3,11 @@ package me.bscal.game.entity.mob;
 import java.util.Random;
 
 import me.bscal.game.Game;
-import me.bscal.game.entity.HumanEntity;
+import me.bscal.game.entity.LivingEntity;
 import me.bscal.game.entity.Player;
 import me.bscal.game.graphics.Rectangle;
 
-public abstract class NPC extends HumanEntity{
+public abstract class NPC extends LivingEntity{
 	
 	protected int xa;
 	protected int ya;

@@ -38,14 +38,15 @@ public class Font {
 		int xOffset = 0;
 		int line = 0;
 		for(int i = 0; i < text.length(); i++) {
-			xOffset += 12 + spacing;
+			xOffset = i * 12;
+			xOffset += spacing;
 			int yOffset = 0; 
 			char c = text.charAt(i);
 			int index = charIndex.indexOf(c);
 			
 			if(c == 'l' || c == 'i' || c == '.') xOffset += -3;				//Decreases spacing.
-			if(c == 'w') xOffset += 1;							//Increases Spacing.
-			if(c == 'y' || c == 'p' || c == 'q') yOffset += 1;	//Lowers y
+			if(c == 'w') xOffset += 1;										//Increases Spacing.
+			if(c == 'y' || c == 'p' || c == 'q') yOffset += 1;				//Lowers y
 			if(c == '\n') {
 				xOffset = 0;
 				line++;

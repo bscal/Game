@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import me.bscal.game.Game;
-import me.bscal.game.GUI.GUI;
+import me.bscal.game.GUI.GUIComponent;
+import me.bscal.game.GUI.GUIPanel;
 import me.bscal.game.entity.Entity;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
@@ -458,7 +459,7 @@ public class Map {
 		Rectangle rect = e.getRectangle();
 		for(int i = 0; i < Game.getEntities().size(); i++) {
 			GameObject o = Game.getEntities().get(i);
-			if(o instanceof GUI || o instanceof Particle || o instanceof Projectile) continue;
+			if(o instanceof GUIComponent || o instanceof GUIPanel || o instanceof Particle || o instanceof Projectile) continue;
 			Entity entity = (Entity) Game.getEntities().get(i);
 			if(entity == e) continue;
 			Rectangle entityRect = entity.getRectangle();

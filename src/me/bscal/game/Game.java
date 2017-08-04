@@ -13,8 +13,11 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-import me.bscal.game.GUI.GUI;
 import me.bscal.game.GUI.GUIButton;
+import me.bscal.game.GUI.GUIButtonComponent;
+import me.bscal.game.GUI.GUIManager;
+import me.bscal.game.GUI.GUIPanel;
+import me.bscal.game.GUI.GUIText;
 import me.bscal.game.GUI.SDKButton;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
@@ -29,7 +32,6 @@ import me.bscal.game.mapping.Tiles;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
-import me.bscal.game.util.Font;
 
 public class Game extends JFrame implements Runnable{
 
@@ -37,20 +39,21 @@ public class Game extends JFrame implements Runnable{
 	 * 
 	 */
 	private static final long serialVersionUID = -7240204747443743168L;
-	public static int width = 900;
-	public static int height = width / 12 * 9;
+	public static int width = 1200;
+	public static int height = width / 16 * 9;
 	public static final int XZOOM = 2;
 	public static final int YZOOM = 2;
 	public static final int ALPHA = 0xFFCCFF00; //0xFF defines Hex color codes
-	public static final String PATH = "resources/img/";
+	public static final String PATH = "resources/";
+	public static final String VERSION = "0.1.3";
 	
 	private Thread thread;
 	private boolean isRunning = false;
 	private Canvas canvas = new Canvas();
 	private Render renderer;
 	private Tiles tiles;
+	private static GUIManager GUIManager;
 	private Map map;
-	private Font font;
 	private KeyboardListener listener;
 	private MouseClickListener mouseListener;
 	private Player player;
@@ -80,6 +83,7 @@ public class Game extends JFrame implements Runnable{
 		float start = System.nanoTime();
 		String workingDir = System.getProperty("user.dir");
 		System.out.println("Current working directory : " + workingDir);
+		
 		//Loads SpriteSheet
 		new SpriteHandler();
 		//Tiles/Map
@@ -87,15 +91,16 @@ public class Game extends JFrame implements Runnable{
 		File mapFile = new File(Game.class.getResource("resources/Map.txt").getPath());
 		tiles = new Tiles(tilesFile, SpriteHandler.tileSheet);
 		map = new Map(mapFile, tiles);
-		font = new Font();
+		GUIManager = new GUIManager();
+		
 		//Load GUI and SDKButtonGUI
-		GUIButton[] buttons = new GUIButton[tiles.size()];
-		Sprite[] tileList = tiles.getSprites();
-		for(int i = 0; i < buttons.length; i++) {
-			Rectangle tileRect = new Rectangle(0, i*(16 * XZOOM + 2), 16*XZOOM, 16*YZOOM);
-			buttons[i] = new SDKButton(this, i, tileList[i], tileRect);
-		}
-		GUI gui = new GUI(buttons, 5, 5, true);
+//		GUIButton[] buttons = new GUIButton[tiles.size()];
+//		Sprite[] tileList = tiles.getSprites();
+//		for(int i = 0; i < buttons.length; i++) {
+//			Rectangle tileRect = new Rectangle(0, i*(16 * XZOOM + 2), 16*XZOOM, 16*YZOOM);
+//			buttons[i] = new SDKButton(this, i, tileList[i], tileRect);
+//		}
+//		GUIButtonComponent gui = new GUIButtonComponent(buttons, 5, 5, true);
 
 		//Initialize entities
 		AnimatedSprite animatedPlayer = new AnimatedSprite(SpriteHandler.playerSheet, 3);
@@ -106,7 +111,8 @@ public class Game extends JFrame implements Runnable{
 			entitiesToAdd.add(new Dummy(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
 		}
 		entities.add(player);
-		entities.add(gui);
+		
+		
 		//Initialize listeners
 		mouseListener = new MouseClickListener(this);
 		listener = new KeyboardListener(this);
@@ -115,22 +121,17 @@ public class Game extends JFrame implements Runnable{
 		canvas.addMouseListener(mouseListener);
 		canvas.addMouseMotionListener(mouseListener);
 		addComponentListener(new ComponentListener() {
-
-			@Override
 			public void componentHidden(ComponentEvent e) {}
 
-			@Override
 			public void componentMoved(ComponentEvent e) {}
 
-			@Override
 			public void componentResized(ComponentEvent e) {
-				getRenderer().getCamera().width = canvas.getWidth();
+				getRenderer().getCamera().width = canvas.getWidth() - renderer.CAMERA_GUI_OFFSET;
 				getRenderer().getCamera().height = canvas.getHeight();
 				width = canvas.getWidth();
 				height = canvas.getHeight();
 			}
 
-			@Override
 			public void componentShown(ComponentEvent e) {}
 		});
 		canvas.requestFocus();
@@ -143,6 +144,7 @@ public class Game extends JFrame implements Runnable{
 		for(int i = 0; i < entities.size(); i++) {
 			entities.get(i).update(this);
 		}
+		GUIManager.update(this);
 		updateEntities();
 	}
 	
@@ -151,9 +153,10 @@ public class Game extends JFrame implements Runnable{
 		Graphics g = bufferStrategy.getDrawGraphics();
 		
 		map.render(renderer, getEntities(), XZOOM, YZOOM);
-		font.render("Hello! How is your day? \nGood.", 50, 50, 0, 3252, renderer, XZOOM, YZOOM);
+		GUIManager.render(renderer, g, XZOOM, YZOOM);
 		renderer.render(g);
-	
+		GUIManager.renderAfterEffect(renderer, g, XZOOM, YZOOM);
+		
 		g.dispose();
 		bufferStrategy.show();
 		renderer.clear();
@@ -293,6 +296,10 @@ public class Game extends JFrame implements Runnable{
 	
 	public int getSelectedLayer() {
 		return selectedLayer;
+	}
+	
+	public static GUIManager getGUI() {
+		return GUIManager;
 	}
 	
 	public Player getPlayer(int id) {

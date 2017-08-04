@@ -5,15 +5,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import me.bscal.game.Game;
-import me.bscal.game.entity.GameObject;
 import me.bscal.game.graphics.Rectangle;
 
 public class MouseClickListener implements MouseListener, MouseMotionListener{
 
-	@SuppressWarnings("unused")
 	private Game game;
 	private int button;
-	private int x, y;
+	private double x, y;
 	
 	public MouseClickListener(Game game) {
 		this.game = game;
@@ -53,27 +51,35 @@ public class MouseClickListener implements MouseListener, MouseMotionListener{
 		button = e.getButton();
 		x = e.getX();
 		y = e.getY();
-//		if(e.getButton() == MouseEvent.BUTTON1) {	//LeftClick Sets Tile
-//			Rectangle mouseRectangle = new Rectangle(x, y, 1, 1);
-//			boolean clicked = false;
-//			
-//			for(GameObject entity : Game.getEntities()) {
-//				if(!clicked) {
-//					clicked = entity.handleMouseClick(mouseRectangle, game.getRenderer().getCamera(), game.getXZoom(), game.getYZoom());
-//				}
-//			}
-//			if(!clicked) {
-//				x = (int) Math.floor((x + game.getRenderer().getCamera().x) / (16.0 * game.getXZoom()));
-//				y = (int) Math.floor((y + game.getRenderer().getCamera().y) / (16.0 * game.getYZoom()));
-//				game.getMap().setTile(game.getSelectedLayer(), x, y, game.getSelectedTileID());
-//			}
-//		}
-//		
-//		if(e.getButton() == MouseEvent.BUTTON3) {	//RighClick Removes Tile
-//			x = (int) Math.floor((x + game.getRenderer().getCamera().x) / (16.0 * game.getXZoom()));
-//			y = (int) Math.floor((y + game.getRenderer().getCamera().y) / (16.0 * game.getYZoom()));
-//			game.getMap().removeTile(game.getSelectedLayer(), x, y);
-//		}
+		int x = e.getX();
+		int y = e.getY();
+		if(e.getButton() == MouseEvent.BUTTON1) {	//LeftClick Sets Tile
+			Rectangle mouseRectangle = new Rectangle(x, y, 1, 1);
+			boolean clicked = false;
+			
+			for(int i = 0; i < Game.getGUI().getPanels().size(); i++) {
+				if(!clicked) {
+					clicked = Game.getGUI().getPanels().get(i).handleMouseClick(mouseRectangle, game.getRenderer().getCamera(), game.getXZoom(), game.getYZoom());
+					if(clicked) return;
+				}
+			}
+			if(!clicked) {
+				for(int j = 0; j < Game.getEntities().size(); j++) {
+					clicked = Game.getEntities().get(j).handleMouseClick(mouseRectangle, game.getRenderer().getCamera(), game.getXZoom(), game.getYZoom());
+				}
+			}
+			if(!clicked) {
+				x = (int) Math.floor((x + game.getRenderer().getCamera().x) / (16.0 * game.getXZoom()));
+				y = (int) Math.floor((y + game.getRenderer().getCamera().y) / (16.0 * game.getYZoom()));
+				game.getMap().setTile(game.getSelectedLayer(), x, y, game.getSelectedTileID());
+			}
+		}
+		
+		if(e.getButton() == MouseEvent.BUTTON3) {	//RighClick Removes Tile
+			x = (int) Math.floor((x + game.getRenderer().getCamera().x) / (16.0 * game.getXZoom()));
+			y = (int) Math.floor((y + game.getRenderer().getCamera().y) / (16.0 * game.getYZoom()));
+			game.getMap().removeTile(game.getSelectedLayer(), x, y);
+		}
 	}
 
 	@Override

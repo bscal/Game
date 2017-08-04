@@ -26,7 +26,7 @@ public abstract class Entity implements GameObject{
 	protected int layer = 0;
 	protected int direction = 0;	//0 = Right,1 = Left,2 = Up,3 = Down
 	protected int animationLength = 0;
-	protected double health, speed;
+	protected double speed;
 	
 	public Entity() {}
 	
@@ -86,6 +86,10 @@ public abstract class Entity implements GameObject{
 		return direction;
 	}
 	
+	/**
+	 * Simple collision detections. Entities will not slide on/off walls or areas that collision is detected.
+	 * @return false if no collision is detected.
+	 */
 	public boolean checkCollision(Game game, Rectangle rect) {
 		if(!game.getMap().checkCollision(rect, layer, game.getXZoom(), game.getYZoom()) 
 				&& !game.getMap().checkCollision(rect, layer + 1, game.getXZoom(), game.getYZoom())
@@ -95,10 +99,7 @@ public abstract class Entity implements GameObject{
 		return true;
 	}
 	
-	/**
-	 * @return The angle of 2 positions.
-	 */
-	protected double getProjectileDirection(double targetX, double targetY, double srcX, double srcY) {
+	public double getProjectileDirection(double targetX, double targetY, double srcX, double srcY) {
 		double dx = targetX - srcX;
 		double dy = targetY - srcY;
 		double dir = Math.atan2(dy, dx);
@@ -109,7 +110,7 @@ public abstract class Entity implements GameObject{
 		return -1;
 	}
 	
-	protected void updateCooldowns() {
+	public void updateCooldowns() {
 		if(!cooldowns.isEmpty()) {
 			Iterator<Cooldown> i = cooldowns.iterator();
 			while (i.hasNext()) {
@@ -122,7 +123,7 @@ public abstract class Entity implements GameObject{
 		}
 	}
 	
-	protected boolean isOnCooldown(String s) {
+	public boolean isOnCooldown(String s) {
 		for(int i = 0; i < cooldowns.size(); i++) {
 			if(s == cooldowns.get(i).getId()) {
 				return true;

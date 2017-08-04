@@ -14,6 +14,7 @@ public class Render {
 	private int[] pixels;
 	private Rectangle camera;
 	private final int TEXT_COLOR = 0xffffffff;
+	public final int CAMERA_GUI_OFFSET = 256;
 
 	public Render(int width, int height) {
 		GraphicsDevice[] graphicDevices = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
@@ -32,13 +33,13 @@ public class Render {
 		//Create a BufferedImage that will represent our view.
 		view = new BufferedImage(maxScreenWidth, maxScreenHeight, BufferedImage.TYPE_INT_RGB);
 
-		camera = new Rectangle(Game.width/2, Game.width/2, width, height);
+		camera = new Rectangle(0, 0, width - CAMERA_GUI_OFFSET, height);
 		//Create an array for pixels
 		pixels = ((DataBufferInt) view.getRaster().getDataBuffer()).getData();
 	}
 
-	public void render(Graphics graphics) {
-		graphics.drawImage(view.getSubimage(0, 0, camera.width, camera.height), 0, 0, camera.width, camera.height, null);
+	public void render(Graphics g) {
+		g.drawImage(view.getSubimage(0, 0, camera.width, camera.height), 0, 0, camera.width, camera.height, null);
 	}
 	
 	/**

@@ -23,7 +23,7 @@ public abstract class GUIButton implements GameObject{
 	}
 	
 	public void render(Render renderer, int xZoom, int yZoom, Rectangle interfaceRectangle) {
-		renderer.renderSprite(sprite, rect.x + interfaceRectangle.x, rect.y+ interfaceRectangle.y, xZoom, yZoom, isFixed);
+		renderer.renderSprite(sprite, rect.x + interfaceRectangle.x, rect.y + interfaceRectangle.y, xZoom, yZoom, isFixed);
 	}
 
 	public void update(Game game) {}
@@ -45,25 +45,12 @@ public abstract class GUIButton implements GameObject{
 	public Sprite getSprite() {
 		return sprite;
 	}
-
-	public void setSprite(Sprite sprite) {
-		this.sprite = sprite;
-	}
-
 	public Rectangle getRect() {
 		return rect;
 	}
 
-	public void setRect(Rectangle rect) {
-		this.rect = rect;
-	}
-
 	public boolean isFixed() {
 		return isFixed;
-	}
-
-	public void setFixed(boolean isFixed) {
-		this.isFixed = isFixed;
 	}
 	
 	public String toString() {

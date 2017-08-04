@@ -1,6 +1,12 @@
 package me.bscal.game.entity;
 
+import java.awt.Font;
+
 import me.bscal.game.Game;
+import me.bscal.game.GUI.GUILoadingBar;
+import me.bscal.game.GUI.GUIManager;
+import me.bscal.game.GUI.GUIPanel;
+import me.bscal.game.GUI.GUIText;
 import me.bscal.game.entity.spell.Fireball;
 import me.bscal.game.entity.spell.Iceblast;
 import me.bscal.game.graphics.Rectangle;
@@ -11,23 +17,60 @@ import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
 import me.bscal.game.util.Cooldown;
 
-public class Player extends HumanEntity{
+public class Player extends LivingEntity{
+	
+	private GUIManager gui;
+	private GUILoadingBar hpBar;
+	private GUILoadingBar manaBar;
+	private GUIText hpText;
+	private GUIText manaText;
+	private int time = 0;
 	
 	public Player(Sprite sprite, int animationLength) {
 		this.sprite = sprite;
 		this.animationLength = animationLength;
-		this.speed = 15;
 		this.layer = 1;
+		this.rect = new Rectangle(0, 0, 20, 26);
+		this.collisionRect = new Rectangle(0, 0, 10*Game.XZOOM, 18*Game.YZOOM);
+		this.name = "bscal";
+		
+		//Player UI
+		Font barFont = new Font("Constantia", Font.PLAIN, 14);
+		gui = Game.getGUI();
+		GUIPanel panel = new GUIPanel(new Rectangle(Game.width - 256, 0, 256, Game.height), 0xff9c9c9c);
+		GUIText text = new GUIText(name,16, 216);
+		text.setColor(0);
+		text.setFont(new Font("Constantia", Font.BOLD, 22));
+		text.setParent(panel);
+		hpBar = new GUILoadingBar(new Rectangle(16, 232, panel.rect.width - 32, 20));
+		hpBar.setParent(panel);
+		hpBar.setColors(0xff878787, 0xffff3d3d);
+		hpBar.setBorder(2, 0xff404040);
+		manaBar = new GUILoadingBar(new Rectangle(16, 264, panel.rect.width - 32, 20));
+		manaBar.setParent(panel);
+		manaBar.setColors(0xff878787, 0xff3853ff);
+		manaBar.setBorder(2, 0xff404040);
+		hpText = new GUIText("", hpBar.bar.x + 2, hpBar.bar.y + 14);
+		hpText.setColor(0xffffffff);
+		hpText.setFont(barFont);
+		hpText.setParent(panel);
+		manaText = new GUIText("", manaBar.bar.x + 2, manaBar.bar.y + 14);
+		manaText.setColor(0xffffffff);
+		manaText.setFont(barFont);
+		manaText.setParent(panel);
+		gui.add(panel);
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
-		
 		updateDirection();
-		rect = new Rectangle(0, 0, 20, 26);
-		collisionRect = new Rectangle(0, 0, 10*Game.XZOOM, 18*Game.YZOOM);
 		xCollisionOffset = 14;
 		yCollisionOffset = 20;
+		
+		//Player Default Stats
+		speed = 8;
+		health = 25;
+		mana = maxMana;
 	}
 
 	@Override
@@ -39,6 +82,7 @@ public class Player extends HumanEntity{
 		collisionRect.y = rect.y;
 		
 		move(game, keyboard);
+		updatePlayer(game);
 		updateCooldowns();
 		playerActions(game, keyboard, mouse);
 		updateCamera(game, game.getRenderer().getCamera());
@@ -111,28 +155,19 @@ public class Player extends HumanEntity{
 		}
 	}
 	
+	private void updatePlayer(Game game) {
+		health += .5;
+		if(health == maxHealth) {
+			health = 0;
+		}
+		hpBar.setProgress(health/maxHealth);
+		manaBar.setProgress(mana/maxMana);
+		hpText.setText("Health: " + health + " / " + maxHealth);
+		manaText.setText("Mana: " + mana + " / " + maxMana);
+	}
+	
 	public void updateCamera(Game game, Rectangle camera) {
 		camera.x = rect.x + (rect.width/2*Game.XZOOM) - (camera.width / 2);
 		camera.y = rect.y + (rect.height/2*Game.YZOOM) - (camera.height / 2);
 	}
 }
-
-//Axis Collision Check || Allows player so slide side to side/up and down while moving forward in that direction
-//POSSIBLE TO USE AT LATER TIME ???
-//
-//Rectangle axis = new Rectangle(collisionRect.x, pRect.y + yCollisionOffset, collisionRect.width, collisionRect.height);
-//
-//if(!game.getMap().checkCollision(axis, layer, game.getXZoom(), game.getYZoom()) && 
-//		!game.getMap().checkCollision(axis, layer + 1, game.getXZoom(), game.getYZoom())) {
-//	pRect.x = collisionRect.x - xCollisionOffset;
-//	}
-//
-//axis.x = pRect.x + xCollisionOffset;
-//axis.y = collisionRect.y;
-//axis.width = collisionRect.width;
-//axis.height = collisionRect.height;
-//
-//if(!game.getMap().checkCollision(axis, layer, game.getXZoom(), game.getYZoom()) && 
-//		!game.getMap().checkCollision(axis, layer + 1, game.getXZoom(), game.getYZoom())) {
-//	pRect.y = collisionRect.y - yCollisionOffset;
-//}

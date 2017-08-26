@@ -65,12 +65,4 @@ public class GUIButtonComponent extends GUIComponent{
 		}
 		return clicked;
 	}
-
-	public Rectangle getRectangle() {
-		return rect;
-	}
-	
-	public int getLayer() {
-		return Integer.MAX_VALUE;
-	}
 }

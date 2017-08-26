@@ -15,36 +15,27 @@ public abstract class Spell extends Entity implements GameObject{
 
 	public Spell() {}
 	
-	public Spell(Sprite sprite, Entity caster, int animationLength) {
-		this.sprite = sprite;
-		this.castRect = caster.getRectangle();
+	public Spell(Sprite sprite, int animationLength, Entity caster) {
+		this(sprite, animationLength, caster.rect);
 		this.caster = caster;
+		this.direction = caster.getDirection();
+	}
+
+	public Spell(Sprite sprite, int animationLength, Rectangle origin) {
+		this.sprite = sprite;
+		this.castRect = origin;
 		this.animationLength = animationLength;
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
 		
-		direction = caster.getDirection();
-		updateDirection();
 		rect = new Rectangle(castRect.getCenterX(), castRect.getCenterY(), 16, 16);
 		collisionRect = new Rectangle(rect.x, rect.y, 15, 15);
 	}
-
-	public double getSpeed() {
-		return speed;
-	}
 	
-	public void setSpeed(double speed) {
-		this.speed = speed;
-	}
-
 	public Entity getCaster() {
-		return caster;
-	}
-
-	public Rectangle getCollisionRect() {
-		return collisionRect;
+		return caster != null ? caster : null;
 	}
 
 	public double getDamage() {

@@ -2,15 +2,17 @@ package me.bscal.game.entity;
 
 import me.bscal.game.Game;
 import me.bscal.game.graphics.Rectangle;
+import me.bscal.serialization.QVField;
+import me.bscal.serialization.QVObject;
 
 public abstract class LivingEntity extends Entity{
 	
 	protected Rectangle collisionRect;
 	protected int xCollisionOffset = 0;
 	protected int yCollisionOffset = 0;
-	protected double health, mana;
-	protected double maxHealth = 50;
-	protected double maxMana = 20;
+	protected float health, mana;
+	protected float maxHealth = 50;
+	protected float maxMana = 20;
 	
 	public LivingEntity() {}
 
@@ -33,5 +35,17 @@ public abstract class LivingEntity extends Entity{
 				!game.getMap().checkCollision(axis, 2, game.getXZoom(), game.getYZoom())) {
 			rect.y = collisionRect.y - yCollisionOffset;
 		}
+	}
+	
+	public void serialize(QVObject o) {
+		super.serialize(o);
+		o.addField(QVField.createFloat("Health", health));
+		o.addField(QVField.createFloat("Mana", mana));
+	}
+	
+	public void deserialize(QVObject o) {
+		super.deserialize(o);
+		this.health = o.findField("Health").getFloat();
+		this.mana = o.findField("Mana").getFloat();
 	}
 }

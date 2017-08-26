@@ -1,9 +1,7 @@
 package me.bscal.game.GUI;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 
 import me.bscal.game.Game;
 import me.bscal.game.graphics.Rectangle;
@@ -13,40 +11,42 @@ public class GUILoadingBar extends GUIComponent{
 
 	private Color barColor;
 	private Color backgroundColor;
-	private Color borderColor;
-	private int borderWidth;
-	public Rectangle bar;
-	private boolean hasBorder = false;
-	/**
-	 * 0.0 to 1.0
-	 */
+	private int barWidth;
+	/** Will always be between 0.0 to 1.0 */
 	private double progress;
 	
 	public GUILoadingBar(Rectangle rect) {
 		super(rect.x, rect.y, rect.width, rect.height);
-		this.bar = new Rectangle(rect.x, rect.y, rect.width, rect.height);
+		this.barWidth = rect.width;
+	}
+	
+	public GUILoadingBar(Rectangle rect, boolean fixed) {
+		super(rect.x, rect.y, rect.width, rect.height);
+		this.barWidth = rect.width;
+		this.fixed = fixed;
 	}
 	
 	public void render(Render renderer, Graphics g, int xZoom, int yZoom) {
-		//Border
-		if(hasBorder) {
-			Graphics2D g2D = (Graphics2D) g;
-			g2D.setColor(borderColor);
-			g2D.setStroke(new BasicStroke(borderWidth));
-			g2D.drawRect(rect.x + parent.rect.x - borderWidth + 1, rect.y + parent.rect.y - borderWidth + 1, rect.width + borderWidth, rect.height + borderWidth);
+		if (hasBorder) {
+			renderBorder(g, xOffset, yOffset);
 		}
-		bar.width = (int) (progress * rect.width);
-		//Background bar.
+		barWidth = (int) (progress * rect.width);
+		// Background bar.
 		g.setColor(backgroundColor);
-		g.fillRect(rect.x + parent.rect.x + bar.width, rect.y + parent.rect.y, rect.width - bar.width, rect.height);
-		//This is the actual bar.
+		g.fillRect(rect.x + xOffset + barWidth, rect.y + yOffset, rect.width - barWidth, rect.height);
+		// This is the actual bar.
 		g.setColor(barColor);
-		g.fillRect(rect.x + parent.rect.x, rect.y + parent.rect.y, bar.width, bar.height);
-		
+		g.fillRect(rect.x + xOffset, rect.y + yOffset, barWidth, rect.height);
 	}
 	
 	public void update(Game game) {
-		
+		if (fixed) {
+			xOffset = parent.rect.width/2;
+			yOffset = parent.rect.height;
+		} else {
+			xOffset = parent.rect.x;
+			yOffset = parent.rect.y;
+		}
 	}
 	
 	public void setProgress(double progress) {
@@ -65,12 +65,9 @@ public class GUILoadingBar extends GUIComponent{
 		this.barColor = new Color(barColor);
 		return this;
 	}
-	
-	public GUILoadingBar setBorder(int borderWidth, int borderColor) {
-		this.borderWidth = borderWidth;
-		this.borderColor = new Color(borderColor);
-		this.hasBorder = true;
-		return this;
+
+	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom) {
+		return false;
 	}
 
 }

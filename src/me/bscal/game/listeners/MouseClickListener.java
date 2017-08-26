@@ -5,54 +5,55 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import me.bscal.game.Game;
+import me.bscal.game.events.EventListener;
+import me.bscal.game.events.eventTypes.MouseMoveEvent;
+import me.bscal.game.events.eventTypes.MousePressedEvent;
+import me.bscal.game.events.eventTypes.MouseReleasedEvent;
 import me.bscal.game.graphics.Rectangle;
 
 public class MouseClickListener implements MouseListener, MouseMotionListener{
 
 	private Game game;
-	private int button;
-	private double x, y;
+	public static int button;
+	public static double x;
+	public static double y;
+	
+	private EventListener listener;
 	
 	public MouseClickListener(Game game) {
 		this.game = game;
+		this.listener = game;
 	}
 	
-	@Override
 	public void mouseDragged(MouseEvent e) {
+		MouseMoveEvent event = new MouseMoveEvent(e.getX(), e.getY(), true);
+		listener.onEvent(event);
+	}
+
+	public void mouseMoved(MouseEvent e) {
 		x = e.getX();
 		y = e.getY();
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 		
+		MouseMoveEvent event = new MouseMoveEvent(e.getX(), e.getY(), false);
+		listener.onEvent(event);
 	}
 
-	@Override
 	public void mouseClicked(MouseEvent e) {
 		
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void mouseEntered(MouseEvent e) {
 	}
 
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void mouseExited(MouseEvent e) {
 	}
 
-	@Override
 	public void mousePressed(MouseEvent e) {
-		button = e.getButton();
-		x = e.getX();
-		y = e.getY();
 		int x = e.getX();
 		int y = e.getY();
+		button = e.getButton();
+		MousePressedEvent event = new MousePressedEvent(e.getX(), e.getY(), e.getButton());
+		listener.onEvent(event);
 		if(e.getButton() == MouseEvent.BUTTON1) {	//LeftClick Sets Tile
 			Rectangle mouseRectangle = new Rectangle(x, y, 1, 1);
 			boolean clicked = false;
@@ -68,27 +69,26 @@ public class MouseClickListener implements MouseListener, MouseMotionListener{
 					clicked = Game.getEntities().get(j).handleMouseClick(mouseRectangle, game.getRenderer().getCamera(), game.getXZoom(), game.getYZoom());
 				}
 			}
-			if(!clicked) {
+			
+			
+			if(!clicked && Game.SDKMode) {
 				x = (int) Math.floor((x + game.getRenderer().getCamera().x) / (16.0 * game.getXZoom()));
 				y = (int) Math.floor((y + game.getRenderer().getCamera().y) / (16.0 * game.getYZoom()));
 				game.getMap().setTile(game.getSelectedLayer(), x, y, game.getSelectedTileID());
 			}
 		}
 		
-		if(e.getButton() == MouseEvent.BUTTON3) {	//RighClick Removes Tile
+		if(e.getButton() == MouseEvent.BUTTON3 && Game.SDKMode) {	//RighClick Removes Tile
 			x = (int) Math.floor((x + game.getRenderer().getCamera().x) / (16.0 * game.getXZoom()));
 			y = (int) Math.floor((y + game.getRenderer().getCamera().y) / (16.0 * game.getYZoom()));
 			game.getMap().removeTile(game.getSelectedLayer(), x, y);
 		}
 	}
 
-	@Override
 	public void mouseReleased(MouseEvent e) {
-		button = -1;
-	}
-	
-	public int getButton() {
-		return button;
+		button = MouseEvent.NOBUTTON;
+		MouseReleasedEvent event = new MouseReleasedEvent(e.getX(), e.getY(), e.getButton());
+		listener.onEvent(event);
 	}
 	
 	

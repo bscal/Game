@@ -16,30 +16,31 @@ import javax.swing.JFrame;
 import me.bscal.game.GUI.GUIManager;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
-import me.bscal.game.entity.mob.Archer;
-import me.bscal.game.entity.mob.Dummy;
-import me.bscal.game.entity.mob.Zombie;
+import me.bscal.game.events.Event;
+import me.bscal.game.events.EventListener;
 import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.game.listeners.MouseClickListener;
+import me.bscal.game.listeners.WindowHandler;
 import me.bscal.game.mapping.Map;
 import me.bscal.game.mapping.Tiles;
+import me.bscal.game.net.Client;
+import me.bscal.game.net.player.NetPlayer;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.SpriteHandler;
+import me.bscal.serialization.QVDatabase;
+import me.bscal.serialization.QVObject;
 
-public class Game extends JFrame implements Runnable{
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7240204747443743168L;
+public class Game extends JFrame implements Runnable, EventListener {
+	private static final long serialVersionUID = 1L;
+	
 	public static int width = 1200;
 	public static int height = width / 16 * 9;
 	public static final int XZOOM = 2;
 	public static final int YZOOM = 2;
 	public static final int ALPHA = 0xFFCCFF00; //0xFF defines Hex color codes
 	public static final String PATH = "resources/";
-	public static final String VERSION = "0.1.3";
+	public static final String VERSION = "1.3";
 	
 	private Thread thread;
 	private boolean isRunning = false;
@@ -53,11 +54,14 @@ public class Game extends JFrame implements Runnable{
 	private Player player;
 	private int selectedTileID = 3;
 	private int selectedLayer = 0;
+	public static Client client;
+	public static boolean SDKMode = false;
 	
 	private static List<GameObject> entities = new ArrayList<GameObject>();
 	private static List<GameObject> entitiesToRemove = new ArrayList<GameObject>();
 	private static List<GameObject> entitiesToAdd = new ArrayList<GameObject>();
-	private ArrayList<Integer> fpsList = new ArrayList<Integer>();
+	private List<Integer> fpsList = new ArrayList<Integer>();
+	public List<Player> players = new ArrayList<Player>();
 	
 	public Game() {
 		this.setTitle("Game");
@@ -80,29 +84,31 @@ public class Game extends JFrame implements Runnable{
 		
 		//Loads SpriteSheet
 		new SpriteHandler();
+		GUIManager = new GUIManager();
+		mouseListener = new MouseClickListener(this);
+		listener = new KeyboardListener(this);
+		new WindowHandler(this);
+		
 		//Tiles/Map
 		File tilesFile = new File(Game.class.getResource("resources/Tiles.txt").getPath());
 		File mapFile = new File(Game.class.getResource("resources/Map.txt").getPath());
 		tiles = new Tiles(tilesFile, SpriteHandler.tileSheet);
 		map = new Map(mapFile, tiles);
-		GUIManager = new GUIManager();
-		
-		//Load GUI and SDKButtonGUI
-		
 		//Initialize entities
 		AnimatedSprite animatedPlayer = new AnimatedSprite(SpriteHandler.playerSheet, 3);
 		player = new Player(this, animatedPlayer, 8);
 		for(int i = 0; i < 1; i++) {
-			entitiesToAdd.add(new Zombie(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
+			//entitiesToAdd.add(new Zombie(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
 			//entitiesToAdd.add(new Archer());
 			//entitiesToAdd.add(new Dummy(new AnimatedSprite(SpriteHandler.playerSheet, 3), 8));
 		}
+		
+		//Server connection
+		client = new Client("localhost", 8192, this);
+		client.connect();
+		
 		entities.add(player);
-		
-		
 		//Initialize listeners
-		mouseListener = new MouseClickListener(this);
-		listener = new KeyboardListener(this);
 		canvas.addKeyListener(listener);
 		canvas.addFocusListener(listener);
 		canvas.addMouseListener(mouseListener);
@@ -122,7 +128,6 @@ public class Game extends JFrame implements Runnable{
 			public void componentShown(ComponentEvent e) {}
 		});
 		canvas.requestFocus();
-		
 		float finish = System.nanoTime();
 		System.out.println("Startup took: " + ((finish - start) / 1000000) + " ms | " + ((finish - start) / 1000000000) + " seconds");
 	}
@@ -143,7 +148,8 @@ public class Game extends JFrame implements Runnable{
 		GUIManager.render(renderer, g, XZOOM, YZOOM);
 		renderer.render(g);
 		GUIManager.renderAfterEffect(renderer, g, XZOOM, YZOOM);
-		
+//		g.drawLine(renderer.getCamera().width/2, 0, renderer.getCamera().width/2, height);
+//		g.drawLine(0, height/2, width, height/2);
 		g.dispose();
 		bufferStrategy.show();
 		renderer.clear();
@@ -163,6 +169,7 @@ public class Game extends JFrame implements Runnable{
 			lastTime = now;
 			if(delta >= 1) {
 				update();
+				serializeAndSendToServer();
 				updates++;
 				delta--;
 			}
@@ -217,10 +224,6 @@ public class Game extends JFrame implements Runnable{
 	
 	public KeyboardListener getKeyListener() {
 		return listener;
-	}
-	
-	public MouseClickListener getMouseListener() {
-		return mouseListener;
 	}
 	
 	public Render getRenderer() {
@@ -293,17 +296,73 @@ public class Game extends JFrame implements Runnable{
 		return tiles;
 	}
 	
+	/**
+	 * Returns a player at a giving id. -1 will return client player.
+	 * @param id of the player
+	 * @return
+	 */
 	public Player getPlayer(int id) {
-		List<Player> players = new ArrayList<Player>();
-		for(int i = 0; i < entities.size(); i++) {
-			if(entities.get(i) instanceof Player) {
-				players.add((Player) entities.get(i));
+		for(int i = 0; i < players.size(); i++) {
+			if(players.get(i).id == id) {
+				return players.get(i);
 			}
 		}
-		if(id == -1) {
-			return players.get(0);
-		}
-		return players.get(id);
+		return null;
 	}
 	
+	public Player getPlayer(String name) {
+		for(int i = 0; i < players.size(); i++) {
+			if(players.get(i).getName().equals(name)) {
+				return players.get(i);
+			}
+		}
+		return null;
+	}
+	
+	public List<Player> getPlayers() {
+		return players;
+	}
+	
+	public void onEvent(Event event) {
+		player.onEvent(event);
+	}
+	
+	public Client getClientPlayer() {
+		return client;
+	}
+	
+	public void setPlayerID(int id) {
+		player.id = id;
+	}
+	
+	public void serializeAndSendToServer() {
+		QVDatabase database = new QVDatabase("Game");
+		QVObject obj = new QVObject("State");
+		database.addObject(obj);
+		QVObject o = new QVObject("Player");
+		player.serialize(o);
+		database.addObject(o);
+//		for(int i = 0; i < getPlayers().size(); i++) {
+//			Player p = getPlayers().get(i);
+//			QVObject o = new QVObject("Player" + i);
+//			p.serialize(o);
+//			database.addObject(o);
+//		}
+		client.send(database);
+	}
+	
+	public void deserializeFromServer(QVDatabase database) {
+		if(database.getName().equals("Game")) {
+			QVObject obj = database.findObject("Player");
+			Player p;
+			if(players.contains(getPlayer(obj.findField("id").getInt()))) {
+				p = getPlayer(obj.findField("id").getInt());
+			}
+			else {
+				AnimatedSprite animatedPlayer = new AnimatedSprite(SpriteHandler.playerSheet, 3);
+				p = new NetPlayer(this, animatedPlayer, 8);
+			}
+			p.deserialize(obj);
+		}
+	}
 }

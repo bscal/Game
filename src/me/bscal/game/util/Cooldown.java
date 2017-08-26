@@ -1,18 +1,14 @@
 package me.bscal.game.util;
 
-import me.bscal.game.entity.Entity;
-
 public class Cooldown {
 
 	private String id;
-	private Entity caster;
 	private double length;
 	private boolean onCooldown = true;
 	private int updates = 0;
 	
-	public Cooldown(String id, Entity caster, double length) {
+	public Cooldown(String id, double length) {
 		this.id = id;
-		this.caster = caster;
 		this.length = length;
 	}
 	
@@ -29,10 +25,6 @@ public class Cooldown {
 	
 	public String getId() {
 		return id;
-	}
-	
-	public Entity getCaster() {
-		return caster;
 	}
 	
 	public double getRemainingTime() {

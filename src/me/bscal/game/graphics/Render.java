@@ -12,7 +12,7 @@ public class Render {
 	
 	private BufferedImage view;
 	private int[] pixels;
-	private Rectangle camera;
+	public static Rectangle camera;
 	private final int TEXT_COLOR = 0xffffffff;
 	public final int CAMERA_GUI_OFFSET = 256;
 

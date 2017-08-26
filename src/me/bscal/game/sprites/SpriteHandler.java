@@ -24,15 +24,15 @@ public class SpriteHandler {
 		playerSheet = new SpriteSheet(playerImg);
 		playerSheet.init(20, 26);
 		//Fireball Sheet
-		BufferedImage fireballImg = loadImage(Game.PATH + "img/Fireball.png");
+		BufferedImage fireballImg = loadAlphaImage(Game.PATH + "img/Fireball.png");
 		fireball = new SpriteSheet(fireballImg);
 		fireball.init(16, 16);
 		//Frostbolt Sheet
-		BufferedImage frostboltImg = loadImage(Game.PATH + "img/Frostbolt.png");
+		BufferedImage frostboltImg = loadAlphaImage(Game.PATH + "img/Frostbolt.png");
 		frostbolt = new SpriteSheet(frostboltImg);
 		frostbolt.init(16, 16);
 		//Explosion Sheet
-		BufferedImage explosionImg = loadImage(Game.PATH + "img/Explosion.png");
+		BufferedImage explosionImg = loadAlphaImage(Game.PATH + "img/Explosion.png");
 		explosion = new SpriteSheet(explosionImg);
 		explosion.init(16, 16);
 	}
@@ -41,6 +41,18 @@ public class SpriteHandler {
 		try {
 			BufferedImage loadedImage = ImageIO.read(Game.class.getResource(path));
 			BufferedImage formated = new BufferedImage(loadedImage.getWidth(), loadedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+			formated.getGraphics().drawImage(loadedImage, 0, 0, null);
+			return formated;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static BufferedImage loadAlphaImage(String path) {
+		try {
+			BufferedImage loadedImage = ImageIO.read(Game.class.getResource(path));
+			BufferedImage formated = new BufferedImage(loadedImage.getWidth(), loadedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
 			formated.getGraphics().drawImage(loadedImage, 0, 0, null);
 			return formated;
 		} catch (IOException e) {

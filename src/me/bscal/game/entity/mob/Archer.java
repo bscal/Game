@@ -97,10 +97,10 @@ public class Archer extends NPC{
 			double angle = getProjectileDirection(target.x, target.y, rect.x, rect.y);
 			Sprite sprite = new Sprite(SpriteHandler.frostbolt, 0, 0, 16, 16);
 			sprite.rotate(angle);
-			Iceblast fb = new Iceblast(sprite, this, 5, rect.x, rect.y, angle);
+			Iceblast fb = new Iceblast(sprite, 5, rect.x, rect.y, angle);
 			if(!isOnCooldown(fb.getName())) {
 				fb.init();
-				cooldowns.add(new Cooldown(fb.getName(), this, 5));
+				cooldowns.add(new Cooldown(fb.getName(), 5));
 			}
 		}
 	}

@@ -44,7 +44,7 @@ public class SDKButton extends GUIButton{
 		}
 	}
 	
-	public void activate() {
+	public void clicked() {
 		game.setSelectedTile(tileID);
 	}
 
@@ -61,4 +61,19 @@ public class SDKButton extends GUIButton{
 		return this;
 	}
 
+	public void hovered() {
+
+	}
+
+	@Override
+	public void released() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void exited() {
+		// TODO Auto-generated method stub
+		
+	}
 }

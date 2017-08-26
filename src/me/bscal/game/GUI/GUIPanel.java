@@ -12,9 +12,17 @@ import me.bscal.game.graphics.Render;
 
 public class GUIPanel implements GameObject{
 
+	public enum BarType {
+		SIDE, HORIZONTAL
+	}
+	
 	private List<GUIComponent> components = new ArrayList<GUIComponent>();
+	
 	public Rectangle rect;
+	private boolean isVisible = true;
 	private int backroundColor;
+	private boolean sideBar = false;
+	private boolean horizontalBar = false;
 	
 	public GUIPanel(Rectangle rect) {
 		this(rect, Game.ALPHA);
@@ -26,16 +34,24 @@ public class GUIPanel implements GameObject{
 	}
 	
 	public void render(Render renderer, Graphics g, int xZoom, int yZoom) {
-		g.setColor(new Color(backroundColor));
-		g.fillRect(rect.x, rect.y, rect.width, rect.height);
+		if(isVisible) {
+			g.setColor(new Color(backroundColor));
+			g.fillRect(rect.x, rect.y, rect.width, rect.height);
+		}
 		for(GUIComponent comp : components) {
 			comp.render(renderer, g, xZoom, yZoom);
 		}	
 	}
 	
 	public void update(Game game) {
-		rect.x = Game.width - game.getRenderer().CAMERA_GUI_OFFSET;
-		rect.height = Game.height;
+		if(sideBar) {
+			rect.x = Game.width - game.getRenderer().CAMERA_GUI_OFFSET;
+			rect.height = Game.height;
+		}
+		if(horizontalBar) {
+			rect.width = Game.width;
+			rect.height = Game.height;
+		}
 		for(GUIComponent comp : components) {
 			comp.update(game);
 		}
@@ -47,9 +63,11 @@ public class GUIPanel implements GameObject{
 
 	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom) {
 		boolean clicked = false;
+		GUIComponent comp;
 		for (int i = 0; i < components.size(); i++) {
-			boolean result = components.get(i).handleMouseClick(mouseRectangle, camera, xZoom, yZoom);
-			if (clicked == false) {
+			comp = components.get(i);
+			boolean result = comp.handleMouseClick(mouseRectangle, camera, xZoom, yZoom);
+			if (!clicked) {
 				clicked = result;
 			}
 		}
@@ -69,6 +87,26 @@ public class GUIPanel implements GameObject{
 		return this;
 	}
 	
+	/**
+	 * Set to true by default.
+	 * @param visible
+	 * @return GUIPanel
+	 */
+	public GUIPanel setVisibilty(boolean visible) {
+		this.isVisible = visible;
+		return this;
+	}
+	
 	public void render(Render renderer, int xZoom, int yZoom) {}
+	
+	public GUIPanel setBar(BarType type) {
+		if(type == BarType.SIDE) {
+			sideBar = true;
+		}
+		else if(type == BarType.HORIZONTAL) {
+			horizontalBar = true;
+		}
+		return this;
+	}
 	
 }

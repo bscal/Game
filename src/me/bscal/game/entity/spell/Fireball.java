@@ -2,40 +2,47 @@ package me.bscal.game.entity.spell;
 
 import me.bscal.game.Game;
 import me.bscal.game.entity.Entity;
-import me.bscal.game.entity.projectile.MagicProjectile;
+import me.bscal.game.entity.projectile.ProjectileEntity;
 import me.bscal.game.entity.spawner.ParticleSpawner;
 import me.bscal.game.graphics.Rectangle;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
 import me.bscal.game.sprites.SpriteHandler;
 
-public class Fireball extends MagicProjectile{
+public class Fireball extends ProjectileEntity{
+	
+	public Fireball(Sprite sprite, int animationLength, int x, int y, double angle) {
+		this(sprite, new Rectangle(x, y, 1, 1), animationLength, x, y ,angle);
+	}
 	
 	public Fireball(Sprite sprite, Entity entity, int animationLength, int x, int y, double angle) {
+		this(sprite, entity.getRectangle(), animationLength, x, y ,angle);
+		this.caster = entity;
+		this.direction = entity.getDirection();
+	}
+	
+	public Fireball(Sprite sprite, Rectangle origin, int animationLength, int x, int y, double angle) {
 		super(x, y, angle);
 		super.sprite = sprite;
-		caster = entity;
-		castRect = entity.getRectangle();
+		castRect = origin;
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
 		
-		direction = entity.getDirection();
-		
-//		if(direction == 3) {
-//			layer = 1;
-//		}
-		
+		projType = 1;
 		name = "fireball";
 		maxLifespan = 50;
 		speed = 12;
-		rect = new Rectangle(castRect.x + 2, castRect.y + 5, 16, 16);
+		rect = new Rectangle(castRect.x, castRect.y, 16, 16);
+		collisionRect = new Rectangle(rect.x, rect.y, 14, 14);
 		launch();
 	}
 	
 	public void onDestroy(Game game) {
-		new ParticleSpawner(rect.getCenterX(), rect.getCenterY(), 45, 45);
+		int x = rect.getCenterX();
+		int y = rect.getCenterY();
+		new ParticleSpawner(x, y, 45, 45);
 		AnimatedSprite animatedExplosion = new AnimatedSprite(SpriteHandler.explosion, 2);
 		Explosion spell = new Explosion(animatedExplosion, this, 5);
 		Game.getAddedEntities().add(spell);
@@ -49,13 +56,18 @@ public class Fireball extends MagicProjectile{
 		if(lifespan > maxLifespan) {
 			onDestroy(game);
 		}
-		
-		if(!checkCollision(game, rect)) {	
+		collisionRect.x = rect.x + collisionRect.width;
+		collisionRect.y = rect.y;
+		if(!checkCollision(game, collisionRect)) {
 			move();
 		}
 		else {
 			onDestroy(game);
 		}
+		if(animatedSprite != null) {
+			animatedSprite.update(game);
+		}
+		lifespan++;
 //		boolean moved = false;
 //		collisionRect.x = rect.x;
 //		collisionRect.y = rect.y;
@@ -80,10 +92,8 @@ public class Fireball extends MagicProjectile{
 //				onDestroy(game);
 //			}
 //		}
-		animatedSprite.update(game);
-		lifespan++;
 	}
-
+	
 	@Override
 	public boolean handleMouseClick(Rectangle mouseRectangle, Rectangle camera, int xZoom, int yZoom) {
 		return false;

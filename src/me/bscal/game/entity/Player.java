@@ -1,6 +1,7 @@
 package me.bscal.game.entity;
 
 import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import me.bscal.game.Game;
@@ -13,9 +14,8 @@ import me.bscal.game.GUI.GUIPanel;
 import me.bscal.game.GUI.GUIPanel.BarType;
 import me.bscal.game.GUI.GUIText;
 import me.bscal.game.GUI.SDKButton;
-import me.bscal.game.entity.projectile.ProjectileEntity;
 import me.bscal.game.entity.projectile.Projectile;
-import me.bscal.game.entity.spell.Iceblast;
+import me.bscal.game.entity.projectile.ProjectileEntity;
 import me.bscal.game.events.Event;
 import me.bscal.game.events.Event.EventType;
 import me.bscal.game.events.EventDispatcher;
@@ -23,11 +23,9 @@ import me.bscal.game.events.EventListener;
 import me.bscal.game.events.eventTypes.MousePressedEvent;
 import me.bscal.game.events.eventTypes.MouseReleasedEvent;
 import me.bscal.game.graphics.Rectangle;
-import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
-import me.bscal.game.sprites.SpriteHandler;
 import me.bscal.game.util.Cooldown;
 import me.bscal.serialization.QVDatabase;
 import me.bscal.serialization.QVField;
@@ -35,16 +33,17 @@ import me.bscal.serialization.QVObject;
 
 public class Player extends LivingEntity implements EventListener{
 	
-	private GUIManager gui;
+	public GUIManager gui;
+	public GUIPanel screen;
 	private GUILoadingBar hpBar;
 	private GUILoadingBar manaBar;
 	private GUILoadingBar xpBar;
 	private GUIText hpText;
 	private GUIText manaText;
 	private GUIText xpText;
-	private double xp = 0;
-	private double xpNeededToLevel = 100;
-	public int id;
+	
+	private double xp 				= 0;
+	private double xpNeededToLevel	= 100;
 	
 	public Player() {}
 	
@@ -54,63 +53,14 @@ public class Player extends LivingEntity implements EventListener{
 		this.layer = 1;
 		this.rect = new Rectangle(0, 0, 20, 26);
 		this.collisionRect = new Rectangle(0, 0, 8*Game.XZOOM, 12*Game.YZOOM);
-		this.name = "bscal1";
+		this.name = "username";
 		
-		//Player UI
-		Font barFont = new Font("Constantia", Font.PLAIN, 14);
-		gui = Game.getGUI();
-		GUIPanel panel = new GUIPanel(new Rectangle(Game.width - 256, 0, 256, Game.height), 0xff9c9c9c).setBar(BarType.SIDE);
-		GUIPanel panel1 = new GUIPanel(new Rectangle(0, 0, 0, 0)).setVisibilty(false).setBar(BarType.HORIZONTAL);
-		GUIText text = new GUIText(name, 16, 216);
-		text.setColor(0);
-		text.setFont(new Font("Constantia", Font.BOLD, 22));
-		text.setParent(panel);
-		hpBar = new GUILoadingBar(new Rectangle(16, 232, panel.rect.width - 32, 20));
-		hpBar.setParent(panel);
-		hpBar.setColors(0xff878787, 0xffff3d3d);
-		hpBar.setBorder(2, 0xff404040);
-		manaBar = new GUILoadingBar(new Rectangle(16, 264, panel.rect.width - 32, 20));
-		manaBar.setParent(panel);
-		manaBar.setColors(0xff878787, 0xff3853ff);
-		manaBar.setBorder(2, 0xff404040);
-		xpBar = new GUILoadingBar(new Rectangle(-384, -24, 512, 16), true);
-		xpBar.setParent(panel1);
-		xpBar.setColors(0xff878787, 0xfff2b200);
-		xpBar.setBorder(2, 0xff404040);
-		hpText = new GUIText("", hpBar.rect.x + 2, hpBar.rect.y + 14);
-		hpText.setColor(0xffffffff);
-		hpText.setFont(barFont);
-		hpText.setParent(panel);
-		manaText = new GUIText("", manaBar.rect.x + 2, manaBar.rect.y + 14);
-		manaText.setColor(0xffffffff);
-		manaText.setFont(barFont);
-		manaText.setParent(panel);
-		xpText = new GUIText("", -212, -12, true);
-		xpText.setColor(0xffffffff);
-		xpText.setFont(barFont);
-		xpText.setParent(panel1);
-		GUIGraphicsButton[] actionBar = new GUIGraphicsButton[9];
-		for(int i = 0; i < actionBar.length; i++) {
-			Rectangle buttonRect = new Rectangle(-356 + (i * (24 * Game.XZOOM + 3)), -80, 48, 48);
-			actionBar[i] = new GUIGraphicsButton(buttonRect).setColors(0xd0858585, 0xf5d4d4d4);
-			actionBar[i].setParent(panel1);
-		}		
-		if(Game.SDKMode) {
-			GUIButton[] buttons = new GUIButton[game.getTiles().size()];
-			Sprite[] tileList = game.getTiles().getSprites();
-			for(int i = 0; i < buttons.length; i++) {
-				Rectangle tileRect = new Rectangle(0, i*(16 * Game.XZOOM + 2), 16*Game.XZOOM, 16*Game.YZOOM);
-				buttons[i] = new SDKButton(i, tileList[i], tileRect).setGameInstance(game);
-			}
-			GUIButtonComponent buttonGUI = new GUIButtonComponent(buttons, 5, 5, true);
-			panel.add(buttonGUI);
-		}
-		gui.addAfterEffect(panel1);
-		gui.add(panel);
+		setupUI(game);
 		
 		if(sprite != null && sprite instanceof AnimatedSprite) {
 			animatedSprite = (AnimatedSprite) sprite;
 		}
+		
 		updateDirection();
 		xCollisionOffset = 14;
 		yCollisionOffset = 28;
@@ -158,11 +108,11 @@ public class Player extends LivingEntity implements EventListener{
 			isMoving = true;
 		}
 		if(keyboard.down()) {
-			if(!keyboard.isCtrlDown()) {
+			if(!keyboard.keys[KeyEvent.VK_CONTROL]) {
 				collisionRect.y += speed;
+				newDirection = 3;
+				isMoving = true;
 			}
-			newDirection = 3;
-			isMoving = true;
 		}
 		
 		if(newDirection != direction) {
@@ -231,20 +181,72 @@ public class Player extends LivingEntity implements EventListener{
 		proj.serializeProjectile(obj, x, y);
 		database.addObject(obj);
 		
-		Game.client.send(database);
+		Game.getClientPlayer().send(database);
 	}
 	
 	public void serialize(QVObject o) {
 		super.serialize(o);
 		o.addField(QVField.createDouble("xp", xp));
-		o.addField(QVField.createInt("id", id));
 	}
 	
 	public void deserialize(QVObject o) {
 		super.deserialize(o);
 		this.xp = o.findField("xp").getDouble();
-		this.id = o.findField("id").getInt();
 	}
 
+	private void setupUI(Game game) {
+		//Player UI
+		Font barFont = new Font("Constantia", Font.PLAIN, 14);
+		gui = Game.getGUI();
+		GUIPanel panel = new GUIPanel(new Rectangle(Game.width - 256, 0, 256, Game.height), 0xff9c9c9c).setBar(BarType.SIDE);
+		panel.hasBackground = true;
+		screen = new GUIPanel(new Rectangle(0, 0, 0, 0)).hasBackground(false).setBar(BarType.HORIZONTAL);
+		GUIText text = new GUIText(name, 16, 216);
+		text.setColor(0);
+		text.setFont(new Font("Constantia", Font.BOLD, 22));
+		text.setParent(panel);
+		hpBar = new GUILoadingBar(new Rectangle(16, 232, panel.rect.width - 32, 20));
+		hpBar.setParent(panel);
+		hpBar.setColors(0xff878787, 0xffff3d3d);
+		hpBar.setBorder(2, 0xff404040);
+		manaBar = new GUILoadingBar(new Rectangle(16, 264, panel.rect.width - 32, 20));
+		manaBar.setParent(panel);
+		manaBar.setColors(0xff878787, 0xff3853ff);
+		manaBar.setBorder(2, 0xff404040);
+		xpBar = new GUILoadingBar(new Rectangle(-384, -24, 512, 16), true);
+		xpBar.setParent(screen);
+		xpBar.setColors(0xff878787, 0xfff2b200);
+		xpBar.setBorder(2, 0xff404040);
+		hpText = new GUIText("", hpBar.rect.x + 2, hpBar.rect.y + 14);
+		hpText.setColor(0xffffffff);
+		hpText.setFont(barFont);
+		hpText.setParent(panel);
+		manaText = new GUIText("", manaBar.rect.x + 2, manaBar.rect.y + 14);
+		manaText.setColor(0xffffffff);
+		manaText.setFont(barFont);
+		manaText.setParent(panel);
+		xpText = new GUIText("", -212, -12, true);
+		xpText.setColor(0xffffffff);
+		xpText.setFont(barFont);
+		xpText.setParent(screen);
+		GUIGraphicsButton[] actionBar = new GUIGraphicsButton[9];
+		for(int i = 0; i < actionBar.length; i++) {
+			Rectangle buttonRect = new Rectangle(-356 + (i * (24 * Game.XZOOM + 3)), -80, 48, 48);
+			actionBar[i] = new GUIGraphicsButton(buttonRect).setColors(0xd0858585, 0xf5d4d4d4);
+			actionBar[i].setParent(screen);
+		}		
+		if(Game.SDKMode) {
+			GUIButton[] buttons = new GUIButton[game.getTiles().size()];
+			Sprite[] tileList = game.getTiles().getSprites();
+			for(int i = 0; i < buttons.length; i++) {
+				Rectangle tileRect = new Rectangle(0, i*(16 * Game.XZOOM + 2), 16*Game.XZOOM, 16*Game.YZOOM);
+				buttons[i] = new SDKButton(i, tileList[i], tileRect).setGameInstance(game);
+			}
+			GUIButtonComponent buttonGUI = new GUIButtonComponent(buttons, 5, 5, true);
+			panel.add(buttonGUI);
+		}
+		gui.addAfterEffect(screen);
+		gui.add(panel);
+	}
 	
 }

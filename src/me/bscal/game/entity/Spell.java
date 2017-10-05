@@ -9,15 +9,15 @@ public abstract class Spell extends Entity implements GameObject{
 	protected Rectangle castRect;
 	protected int lifespan = 0;
 	protected int maxLifespan = 45;
-	protected double damage, mana, cooldown;
-	protected Entity caster;
+	protected int manaCost = 0;
+	protected int ownerID = 0;
 	protected Rectangle collisionRect;
 
 	public Spell() {}
 	
 	public Spell(Sprite sprite, int animationLength, Entity caster) {
 		this(sprite, animationLength, caster.rect);
-		this.caster = caster;
+		this.ownerID = caster.id;
 		this.direction = caster.getDirection();
 	}
 
@@ -32,14 +32,6 @@ public abstract class Spell extends Entity implements GameObject{
 		
 		rect = new Rectangle(castRect.getCenterX(), castRect.getCenterY(), 16, 16);
 		collisionRect = new Rectangle(rect.x, rect.y, 15, 15);
-	}
-	
-	public Entity getCaster() {
-		return caster != null ? caster : null;
-	}
-
-	public double getDamage() {
-		return damage;
 	}
 	
 }

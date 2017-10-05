@@ -12,11 +12,14 @@ import me.bscal.game.graphics.Render;
 public abstract class GUIComponent{
 
 	public Rectangle rect = new Rectangle();
-	protected GUIPanel parent;
+	public GUIPanel parent;
+	public GUIBox parentBox;
 	
-	protected Color borderColor;
-	protected int borderWidth, xOffset, yOffset;
-	protected boolean hasBorder = false;
+	public Color borderColor;
+	public boolean hasBorder = false;
+	public int borderWidth;
+	
+	protected int xOffset, yOffset;
 	protected boolean fixed = false;
 	
 	public GUIComponent(int x, int y) {

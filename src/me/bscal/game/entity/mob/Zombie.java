@@ -1,19 +1,13 @@
 package me.bscal.game.entity.mob;
 
-import java.util.List;
-
 import me.bscal.game.Game;
 import me.bscal.game.graphics.Rectangle;
 import me.bscal.game.graphics.Render;
-import me.bscal.game.mapping.Node;
 import me.bscal.game.sprites.AnimatedSprite;
 import me.bscal.game.sprites.Sprite;
 import me.bscal.game.util.Vector2i;
 
 public class Zombie extends NPC{
-
-	private List<Node> path = null;
-	private int time = 0;
 	
 	public Zombie(Sprite sprite, int animationLength) {
 		this.animatedSprite = (AnimatedSprite) sprite;
@@ -68,7 +62,7 @@ public class Zombie extends NPC{
 		}
 	}
 	
-	private void move(Game game) {
+	public void move(Game game) {
 		xa = 0;
 		ya = 0;
 		int px = game.getPlayer(-1).getRectangle().x - 2;

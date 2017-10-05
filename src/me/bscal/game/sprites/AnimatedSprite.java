@@ -40,6 +40,12 @@ public class AnimatedSprite extends Sprite implements GameObject{
 		this.speed = speed;
 		this.endSprite = sprites.length - 1;
 	}
+	
+	public AnimatedSprite(Sprite[] sprites, int speed) {
+		this.sprites = sprites;
+		this.speed = speed;
+		this.endSprite = sprites.length - 1;
+	}
 
 	public void render(Render renderer, int xZoom, int yZoom) {}
 
@@ -110,6 +116,14 @@ public class AnimatedSprite extends Sprite implements GameObject{
 	
 	public int getEndSprite() {
 		return endSprite;
+	}
+	
+	public Sprite[] getSprites() {
+		return sprites;
+	}
+	
+	public int getSpriteSize() {
+		return sprites.length;
 	}
 	
 }

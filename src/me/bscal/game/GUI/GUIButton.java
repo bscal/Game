@@ -11,8 +11,12 @@ import me.bscal.game.sprites.Sprite;
 
 public abstract class GUIButton extends GUIComponent implements GUIListener{
 
+	public enum Action {
+		NONE, EXIT, HIDE, TEXT, ACTION
+	}
+	
 	private Sprite sprite;
-	private boolean isFixed;
+	public boolean isFixed;
 	protected boolean clicked = false;
 	protected boolean inside = false;
 	protected int x, y;

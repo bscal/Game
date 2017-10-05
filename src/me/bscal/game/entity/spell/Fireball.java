@@ -17,7 +17,7 @@ public class Fireball extends ProjectileEntity{
 	
 	public Fireball(Sprite sprite, Entity entity, int animationLength, int x, int y, double angle) {
 		this(sprite, entity.getRectangle(), animationLength, x, y ,angle);
-		this.caster = entity;
+		this.ownerID = entity.id;
 		this.direction = entity.getDirection();
 	}
 	
@@ -58,7 +58,7 @@ public class Fireball extends ProjectileEntity{
 		}
 		collisionRect.x = rect.x + collisionRect.width;
 		collisionRect.y = rect.y;
-		if(!checkCollision(game, collisionRect)) {
+		if(!simpleCollisionCheck(game, collisionRect)) {
 			move();
 		}
 		else {

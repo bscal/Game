@@ -51,7 +51,7 @@ public class ProjectileEntity extends Spell implements Projectile {
 	}
 
 	public ProjectileEntity setOwner(Entity e) {
-		this.caster = e;
+		this.ownerID = e.getID();
 		return this;
 	}
 

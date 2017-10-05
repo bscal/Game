@@ -9,11 +9,12 @@ import me.bscal.game.graphics.Render;
 import me.bscal.game.sprites.Sprite;
 
 public class GUIGraphicsButton extends GUIButton{
-
-	private BufferedImage image;
-	private Color color = new Color(0xffffffff);
-	private Color backgroundColor;
-	private Color hoverColor;
+	
+	public BufferedImage image;
+	public Color color = new Color(0xffffffff);
+	public Color backgroundColor;
+	public Color hoverColor;
+	public Action action;
 	
 	public GUIGraphicsButton(Rectangle rect) {
 		this(null, rect, true);
@@ -43,11 +44,26 @@ public class GUIGraphicsButton extends GUIButton{
 		return this;
 	}
 	
+	public void setSolidColor(int color) {
+		Color c = new Color(color);
+		this.color = c;
+		backgroundColor = c;
+		hoverColor = c;
+	}
+	
 	public void setImage(BufferedImage image) {
 		this.image = image;
 	}
-
+	
 	public void clicked() {
+		if(action != null) {
+			if(action == Action.EXIT) {
+				GUIManager.delete(parent);
+			}
+			else if(action == Action.HIDE) {
+				parent.isVisible = false;
+			}
+		}
 		System.out.println("Clicked!");
 	}
 

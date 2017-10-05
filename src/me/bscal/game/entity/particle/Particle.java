@@ -57,7 +57,7 @@ public class Particle extends Entity{
 			ya *= 0.4;
 		}
 		//If particle has a collision reflex applies a force backwards.
-		if(checkCollision(game, rect)) {
+		if(simpleCollisionCheck(game, rect)) {
 			xa *= -0.5;
 			ya *= -0.5;
 			za *= -0.5;

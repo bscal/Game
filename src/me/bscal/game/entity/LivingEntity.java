@@ -13,27 +13,50 @@ public abstract class LivingEntity extends Entity{
 	protected float health, mana;
 	protected float maxHealth = 50;
 	protected float maxMana = 20;
+	protected int level = 0;
 	
 	public LivingEntity() {}
-
+	
 	public void checkCollision(Game game) {
-		Rectangle axis = new Rectangle(collisionRect.x, rect.y + yCollisionOffset, collisionRect.width, collisionRect.height);
+		checkCollision(game, collisionRect);
+//		Rectangle axis = new Rectangle(collisionRect.x, rect.y + yCollisionOffset, collisionRect.width, collisionRect.height);
+//		
+//		if(!game.getMap().checkCollision(axis, 0, game.getXZoom(), game.getYZoom()) && 
+//				!game.getMap().checkCollision(axis, 1, game.getXZoom(), game.getYZoom()) &&
+//				!game.getMap().checkCollision(axis, 2, game.getXZoom(), game.getYZoom())) {
+//			rect.x = collisionRect.x - xCollisionOffset;
+//		}
+//		
+//		axis.x = rect.x + xCollisionOffset;
+//		axis.y = collisionRect.y;
+//		axis.width = collisionRect.width;
+//		axis.height = collisionRect.height;
+//		
+//		if(!game.getMap().checkCollision(axis, 0, game.getXZoom(), game.getYZoom()) && 
+//				!game.getMap().checkCollision(axis, 1, game.getXZoom(), game.getYZoom()) &&
+//				!game.getMap().checkCollision(axis, 2, game.getXZoom(), game.getYZoom())) {
+//			rect.y = collisionRect.y - yCollisionOffset;
+//		}
+	}
+	
+	public void checkCollision(Game game, Rectangle r) {
+		Rectangle axis = new Rectangle(r.x, rect.y + yCollisionOffset, r.width, r.height);
 		
 		if(!game.getMap().checkCollision(axis, 0, game.getXZoom(), game.getYZoom()) && 
 				!game.getMap().checkCollision(axis, 1, game.getXZoom(), game.getYZoom()) &&
 				!game.getMap().checkCollision(axis, 2, game.getXZoom(), game.getYZoom())) {
-			rect.x = collisionRect.x - xCollisionOffset;
+			rect.x = r.x - xCollisionOffset;
 		}
 		
 		axis.x = rect.x + xCollisionOffset;
-		axis.y = collisionRect.y;
-		axis.width = collisionRect.width;
-		axis.height = collisionRect.height;
+		axis.y = r.y;
+		axis.width = r.width;
+		axis.height = r.height;
 		
 		if(!game.getMap().checkCollision(axis, 0, game.getXZoom(), game.getYZoom()) && 
 				!game.getMap().checkCollision(axis, 1, game.getXZoom(), game.getYZoom()) &&
 				!game.getMap().checkCollision(axis, 2, game.getXZoom(), game.getYZoom())) {
-			rect.y = collisionRect.y - yCollisionOffset;
+			rect.y = r.y - yCollisionOffset;
 		}
 	}
 	

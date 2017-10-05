@@ -5,7 +5,8 @@ public class Event {
 	public enum EventType {
 		MOUSE_PRESSED,
 		MOUSE_RELEASED,
-		MOUSE_MOVED
+		MOUSE_MOVED,
+		CHAT_EVENT
 	}
 	
 	private EventType type;

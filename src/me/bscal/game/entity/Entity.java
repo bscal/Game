@@ -1,10 +1,13 @@
 package me.bscal.game.entity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import me.bscal.game.Game;
+import me.bscal.game.attributes.Attribute;
 import me.bscal.game.entity.projectile.Projectile;
 import me.bscal.game.graphics.Rectangle;
 import me.bscal.game.graphics.Render;
@@ -17,21 +20,26 @@ import me.bscal.serialization.QVString;
 
 public abstract class Entity implements GameObject{
 	
-	protected List<Projectile> projectiles = new ArrayList<Projectile>();
-	protected List<Cooldown> cooldowns = new ArrayList<Cooldown>();
+	protected List<Projectile> projectiles 	= new ArrayList<Projectile>();
+	protected List<Cooldown> cooldowns 		= new ArrayList<Cooldown>();
+	protected Set<Attribute> attributes 	= new HashSet<Attribute>();
 	
 	protected String name;
 	protected Rectangle rect;
 	protected Sprite sprite;
 	protected AnimatedSprite animatedSprite = null;
-	protected boolean removed = false;
-	protected boolean isMoving = false;
-	protected boolean isInvulnerable = false;
-	protected boolean isCollidable = true;
-	protected int layer = 0;
-	protected int direction = 0;	//0 = Right,1 = Left,2 = Up,3 = Down
-	protected int animationLength = 0;
+	protected boolean isRemoved 			= false;
+	protected boolean isMoving 				= false;
+	public boolean isInvulnerable 			= false;
+	public boolean isCollidable 			= true;	
+	public boolean isVisible 				= true;
+	protected int layer 					= 0;
+	protected int direction 				= 0;		//0 = Right, 1 = Left, 2 = Up, 3 = Down
+	protected int time 						= 0;
+	protected int animationLength;
 	protected float speed;
+	
+	public int id;
 	
 	public Entity() {}
 	
@@ -47,14 +55,16 @@ public abstract class Entity implements GameObject{
 	}
 	
 	public void render(Render renderer, int xZoom, int yZoom) {
-		if(animatedSprite != null) {
-			renderer.renderSprite(animatedSprite, rect.x, rect.y, xZoom, yZoom, false);
-		}
-		else if(sprite != null) {
-			renderer.renderSprite(sprite, rect.x, rect.y, xZoom, yZoom, false);
-		}
-		else {
-			renderer.renderRectangle(rect, xZoom, yZoom, false);
+		if(isVisible) {
+			if(animatedSprite != null) {
+				renderer.renderSprite(animatedSprite, rect.x, rect.y, xZoom, yZoom, false);
+			}
+			else if(sprite != null) {
+				renderer.renderSprite(sprite, rect.x, rect.y, xZoom, yZoom, false);
+			}
+			else {
+				renderer.renderRectangle(rect, xZoom, yZoom, false);
+			}
 		}
 	}
 	
@@ -68,25 +78,25 @@ public abstract class Entity implements GameObject{
 		return layer;
 	}
 	
-	public List<Projectile> getProjectiles() {
-		return projectiles;
-	}
-	
 	public String getName() {
 		return name;
 	}
 	
-	public Sprite getSprite() {
-		return animatedSprite;
+	public boolean isRemoved() {
+		return isRemoved;
+	}
+	
+	public int getID() {
+		return id;
+	}
+	
+	public List<Projectile> getProjectiles() {
+		return projectiles;
 	}
 	
 	public void remove() {
 		Game.getRemovedEntities().add(this);
-		removed = true;
-	}
-	
-	public boolean isRemoved() {
-		return removed;
+		isRemoved = true;
 	}
 	
 	/**
@@ -100,7 +110,7 @@ public abstract class Entity implements GameObject{
 	 * Simple collision detections. Entities will not slide on/off walls or areas that collision is detected.
 	 * @return false if no collision is detected.
 	 */
-	public boolean checkCollision(Game game, Rectangle rect) {
+	public boolean simpleCollisionCheck(Game game, Rectangle rect) {
 		if(!game.getMap().checkCollision(rect, layer, game.getXZoom(), game.getYZoom()) 
 				&& !game.getMap().checkCollision(rect, layer + 1, game.getXZoom(), game.getYZoom())
 				&& !game.getMap().checkCollision(rect, layer + 2, game.getXZoom(), game.getYZoom())) {
@@ -118,6 +128,21 @@ public abstract class Entity implements GameObject{
 	
 	public int getDirectionFromMouse(double angle) {
 		return -1;
+	}
+	
+	public Set<Attribute> getAttributes() {
+		return attributes;
+	}
+	
+	public Attribute getAttribute(String name) {
+		Iterator<Attribute> it = attributes.iterator();
+		while(it.hasNext()) {
+			Attribute a = it.next();
+			if(a.equals(name)) {
+				return a;
+			}
+		}
+		return null;
 	}
 	
 	public void updateCooldowns() {
@@ -151,26 +176,26 @@ public abstract class Entity implements GameObject{
 		return null;
 	}
 	
+	public List<Cooldown> getCooldowns() {
+		return cooldowns;
+	}
+	
 	public void serialize(QVObject o) {
 		o.addField(QVField.createInt("x", rect.x));
 		o.addField(QVField.createInt("y", rect.y));
-		o.addField(QVField.createInt("direction", direction));
-		o.addField(QVField.createBoolean("Moving", isMoving));
+		o.addField(QVField.createInt("dir", direction));
+		o.addField(QVField.createBoolean("mov", isMoving));
+		o.addField(QVField.createInt("id", id));
 		o.addString(QVString.create("Name", name.toCharArray()));
-//		for(int i = 0; i < projectiles.size(); i++) {
-//			QVObject obj = new QVObject("proj" + i);
-//			projectiles.get(i).serialize(obj);
-//			o.addObject(obj);
-//		}
-//		o.addString(QVString.create("SpritePath", "resources/sprites/player.png"));
 	}
 	
 	public void deserialize(QVObject o) {
 		this.rect.x = o.findField("x").getInt();
 		this.rect.y = o.findField("y").getInt();
-		this.direction = o.findField("direction").getInt();
+		this.direction = o.findField("dir").getInt();
+		this.isMoving = o.findField("mov").getBoolean();
+		this.id = o.findField("id").getInt();
 		this.name = o.findString("Name").getString();
-		this.isMoving = o.findField("Moving").getBoolean();
 	}
 	
 }

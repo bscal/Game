@@ -22,7 +22,7 @@ public class Iceblast extends ProjectileEntity{
 		if(maxLifespan < lifespan) {
 			remove();
 		}
-		if(!checkCollision(game, rect)) {
+		if(!simpleCollisionCheck(game, rect)) {
 			move();
 		}
 		else {

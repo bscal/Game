@@ -65,15 +65,9 @@ public class SDKButton extends GUIButton{
 
 	}
 
-	@Override
 	public void released() {
-		// TODO Auto-generated method stub
-		
 	}
 
-	@Override
 	public void exited() {
-		// TODO Auto-generated method stub
-		
 	}
 }

@@ -8,9 +8,12 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import me.bscal.game.Game;
+import me.bscal.game.GUI.GUIManager;
 import me.bscal.game.entity.Player;
 import me.bscal.game.entity.projectile.ProjectileEntity;
+import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.serialization.QVDatabase;
+import me.bscal.serialization.QVObject;
 
 public class Client {
 
@@ -110,14 +113,23 @@ public class Client {
 			String name = database.getName();
 			if (name.equals("Game")) {
 				processDatabase(database);
-			} else if (name.equals("ID")) {
-				game.setPlayerID(database.getRootObject().getRootField().getInt());
-			} else if (name.equals("Proj")) {
+			}
+			else if (name.equals("Proj")) {
 				assert (database.findObject("0") != null);
 				ProjectileEntity.deserializeProjectile(database.getRootObject());
-			} else if (name.equals("Logout")) {
+			}
+			else if (name.equals("QV")) {
+				QVObject obj = database.getRootObject();
+				if (obj.getName().equals("chat")) {
+					GUIManager.chat.addMessage(obj.getRootString().getString());
+				}
+			} 
+			else if (name.equals("ID")) {
+				game.setPlayerID(database.getRootObject().getRootField().getInt());
+			}
+			else if (name.equals("Logout")) {
 				Player p = game.getPlayer(database.getRootObject().getRootField().getInt());
-				//game.getPlayers().remove(p);
+				// game.getPlayers().remove(p);
 				Game.getRemovedEntities().add(p);
 			}
 		}
@@ -139,13 +151,6 @@ public class Client {
 		byte[] data = new byte[] { 91, 0 };
 		send(data);
 	}
-
-	// public void sendLoginPacket(String username, String password, boolean
-	// rememeber) {
-	// //TODO Salt and hash password send username and hashed password to server
-	// compare.
-	// byte[] data = new byte[username.length()];
-	// }
 
 	public void send(byte[] data) {
 		assert (!socket.isClosed());

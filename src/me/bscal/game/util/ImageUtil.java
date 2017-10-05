@@ -1,5 +1,6 @@
 package me.bscal.game.util;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.RescaleOp;
@@ -25,5 +26,12 @@ public class ImageUtil {
 		RescaleOp rescaleOp = new RescaleOp(scale, offset, null);
 		rescaleOp.filter(result, result);
 		return result;
+	}
+	
+	public static void changeColorsAlpha(Color color, int amount) {
+		int i = color.getAlpha();
+		i += amount;
+		MathUtil.clamp(i, 0, 255);
+		color = new Color(i, color.getRed(), color.getGreen(), color.getBlue());
 	}
 }

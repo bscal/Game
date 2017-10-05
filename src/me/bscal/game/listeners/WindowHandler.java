@@ -18,7 +18,8 @@ public class WindowHandler implements WindowListener{
 	}
 
 	public void windowClosing(WindowEvent e) {
-		game.getClientPlayer().disconnect();
+		Game.getClientPlayer().disconnect();
+		game.calculatePreformance();
 	}
 
 	public void windowClosed(WindowEvent e) {

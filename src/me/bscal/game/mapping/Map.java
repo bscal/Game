@@ -1,5 +1,7 @@
 package me.bscal.game.mapping;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,8 +40,8 @@ public class Map {
 		}
 	};
 
-	private List<MappedTile> mappedTiles = new ArrayList<MappedTile>();
-	private GridBlock[][] grids;
+	public List<MappedTile> mappedTiles = new ArrayList<MappedTile>();
+	public GridBlock[][] grids;
 	private int startX, startY;
 	private int gridWidth = 6;
 	private int gridHeight = 6;
@@ -50,6 +52,9 @@ public class Map {
 	private int yIncrement = 16 * Game.YZOOM;
 
 	private File mapFile;
+	
+	//MiniMap fields
+	private final int offset = 32 * 16;
 
 	public Map(File mapFile, Tiles tileSet) {
 		this.tileSet = tileSet;
@@ -317,6 +322,60 @@ public class Map {
 		}
 	}
 
+	public void renderToMinimap(Render renderer, Graphics g, List<GameObject> entities, int xZoom, int yZoom) { 
+		int size = 66;
+		Rectangle rect = new Rectangle(0,0,0,0);
+		Rectangle bounds = new Rectangle(16, 16, size, size);
+		rect.x = Game.getPlayer().getRectangle().x - offset;
+		rect.y = Game.getPlayer().getRectangle().y - offset;
+		int scale = 2;
+		int x = 16;
+		int y = 16;
+		int xCount = 0;
+		int yCount = 0;
+		int xPos = rect.x;
+		for(int i = 0; i < size * size; i++) {
+			if(getTile(0, rect.x / 32, rect.y / 32) == null) {
+				g.setColor(new Color(0xffff00ff));
+				g.fillRect(x, y, scale, scale);
+				rect.x += 16;
+				x += scale;
+				xCount++;
+				if(xCount == size) {
+					rect.y += 16;
+					y += scale;
+					x = 16;
+					rect.x = xPos;
+					xCount = 0;
+					yCount++;
+					if(yCount == size) {
+						break;
+					}
+				}
+				continue;
+			}
+			MappedTile tile = getTile(1, rect.x / 32, rect.y / 32);
+			g.setColor(new Color(0xff00ff00));
+			g.fillRect(x, y, scale, scale);
+			rect.x += 16;
+			x += scale;
+			xCount++;
+			if(xCount == size) {
+				rect.y += 16;
+				y += scale;
+				x = 16;
+				xCount = 0;
+				rect.x = xPos;
+				yCount++;
+				if(yCount == size) {
+					break;
+				}
+			}
+		}
+		g.setColor(Color.WHITE);
+		g.fillRect(bounds.x + bounds.width - 3, bounds.y + bounds.height - 3, 6, 6);
+	}
+	
 	public void render(Render renderer, List<GameObject> entities, int xZoom, int yZoom) {
 		if (fillID >= 0) {
 			Rectangle camera = renderer.getCamera();
@@ -384,10 +443,11 @@ public class Map {
 			}
 		}
 
-		for (int i = 0; i < entities.size(); i++)
-			if (entities.get(i).getLayer() == Integer.MAX_VALUE)
+		for (int i = 0; i < entities.size(); i++) {
+			if (entities.get(i).getLayer() == Integer.MAX_VALUE) {
 				entities.get(i).render(renderer, xZoom, yZoom);
-
+			}
+		}
 	}
 
 	public List<Node> findPath(Vector2i start, Vector2i end) {
@@ -452,6 +512,10 @@ public class Map {
 		double dy = start.getY() - end.getY();
 		return Math.sqrt((dx * dx) + (dy * dy));
 	}
+	
+	public Tiles getTileSet() {
+		return tileSet;
+	}
 
 	public List<Entity> getNearbyEntities(Entity e, int radius) {
 		List<Entity> result = new ArrayList<Entity>();
@@ -490,6 +554,7 @@ public class Map {
 	class MappedTile {
 		public int layer, id, x, y;
 		public boolean solid;
+		public boolean flat;
 
 		public MappedTile(int layer, int id, int x, int y) {
 			this.layer = layer;
@@ -519,7 +584,7 @@ public class Map {
 				}
 			}
 		}
-
+	
 		public void addTile(MappedTile tile) {
 			if (mappedTilesByLayer.length <= tile.layer) {
 				ArrayList<MappedTile>[] newTilesByLayer = new ArrayList[tile.layer + 1];

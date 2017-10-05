@@ -11,6 +11,8 @@ public abstract class Spawner extends Entity{
 	
 	@SuppressWarnings("unused")
 	private SpawnerType type;
+	protected int x, y;
+	protected float range;
 	
 	public Spawner(int x, int y, SpawnerType type) {
 		this.type = type;

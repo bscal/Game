@@ -15,6 +15,8 @@ public class SpriteHandler {
 	public static SpriteSheet frostbolt;
 	public static SpriteSheet explosion;
 	
+	public static Sprite[] waterTiles;
+	
 	public SpriteHandler() {
 		BufferedImage sheetImg = loadImage(Game.PATH + "img/Tiles1.png");
 		tileSheet = new SpriteSheet(sheetImg);
@@ -35,6 +37,17 @@ public class SpriteHandler {
 		BufferedImage explosionImg = loadAlphaImage(Game.PATH + "img/Explosion.png");
 		explosion = new SpriteSheet(explosionImg);
 		explosion.init(16, 16);
+		
+		SpriteSheet tilesSheet;
+		BufferedImage tiles = loadAlphaImage(Game.PATH + "img/GameTiles.png");
+		tilesSheet = new SpriteSheet(tiles);
+		tilesSheet.init(16, 16);
+		
+		waterTiles = new Sprite[3];
+		waterTiles[0] = tilesSheet.getSprite(0, 0);
+		waterTiles[1] = tilesSheet.getSprite(1, 0);
+		waterTiles[2] = tilesSheet.getSprite(2, 0);
+		//TODO Water Tiles
 	}
 	
 	public static BufferedImage loadImage(String path) {

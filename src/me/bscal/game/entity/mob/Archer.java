@@ -73,7 +73,7 @@ public class Archer extends NPC{
 		shootClosest(game);
 	}
 
-	private void move(Game game) {
+	public void move(Game game) {
 		collisionRect.x += xPos;
 		collisionRect.y += yPos;
 		checkCollision(game);

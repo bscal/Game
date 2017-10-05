@@ -14,10 +14,16 @@ import java.util.List;
 import javax.swing.JFrame;
 
 import me.bscal.game.GUI.GUIManager;
+import me.bscal.game.chat.ChatCommandHandler;
+import me.bscal.game.chat.commands.Broadcast;
+import me.bscal.game.debug.Console;
 import me.bscal.game.entity.GameObject;
 import me.bscal.game.entity.Player;
+import me.bscal.game.entity.mob.Skeleton;
 import me.bscal.game.events.Event;
+import me.bscal.game.events.Event.EventType;
 import me.bscal.game.events.EventListener;
+import me.bscal.game.events.eventTypes.ChatEvent;
 import me.bscal.game.graphics.Render;
 import me.bscal.game.listeners.KeyboardListener;
 import me.bscal.game.listeners.MouseClickListener;
@@ -47,21 +53,24 @@ public class Game extends JFrame implements Runnable, EventListener {
 	private Canvas canvas = new Canvas();
 	private Render renderer;
 	private Tiles tiles;
-	private static GUIManager GUIManager;
 	private Map map;
 	private KeyboardListener listener;
 	private MouseClickListener mouseListener;
-	private Player player;
+	private ChatCommandHandler chatHandler;
+	
+	private static Player player;
+	private static Client client;
+	private static GUIManager GUIManager;
+	
+	private static List<GameObject> entities		 = new ArrayList<GameObject>();
+	private static List<GameObject> entitiesToRemove = new ArrayList<GameObject>();
+	private static List<GameObject> entitiesToAdd	 = new ArrayList<GameObject>();
+	private List<Integer> fpsList 					 = new ArrayList<Integer>();
+	public List<Player> players 					 = new ArrayList<Player>();
+	
 	private int selectedTileID = 3;
 	private int selectedLayer = 0;
-	public static Client client;
 	public static boolean SDKMode = false;
-	
-	private static List<GameObject> entities = new ArrayList<GameObject>();
-	private static List<GameObject> entitiesToRemove = new ArrayList<GameObject>();
-	private static List<GameObject> entitiesToAdd = new ArrayList<GameObject>();
-	private List<Integer> fpsList = new ArrayList<Integer>();
-	public List<Player> players = new ArrayList<Player>();
 	
 	public Game() {
 		this.setTitle("Game");
@@ -88,6 +97,7 @@ public class Game extends JFrame implements Runnable, EventListener {
 		mouseListener = new MouseClickListener(this);
 		listener = new KeyboardListener(this);
 		new WindowHandler(this);
+		chatHandler = new ChatCommandHandler();
 		
 		//Tiles/Map
 		File tilesFile = new File(Game.class.getResource("resources/Tiles.txt").getPath());
@@ -128,11 +138,18 @@ public class Game extends JFrame implements Runnable, EventListener {
 			public void componentShown(ComponentEvent e) {}
 		});
 		canvas.requestFocus();
+		
+		chatHandler.registerCommand(new Broadcast());
+		Skeleton s = new Skeleton(80, 80);
+		s.init();
 		float finish = System.nanoTime();
 		System.out.println("Startup took: " + ((finish - start) / 1000000) + " ms | " + ((finish - start) / 1000000000) + " seconds");
 	}
 	
 	public void update() {
+		for(int i = 0; i < tiles.tileList.size(); i++) {
+			tiles.tileList.get(i).update();
+		}
 		for(int i = 0; i < entities.size(); i++) {
 			entities.get(i).update(this);
 		}
@@ -148,6 +165,7 @@ public class Game extends JFrame implements Runnable, EventListener {
 		GUIManager.render(renderer, g, XZOOM, YZOOM);
 		renderer.render(g);
 		GUIManager.renderAfterEffect(renderer, g, XZOOM, YZOOM);
+		//map.renderToMinimap(renderer, g, entities, XZOOM, YZOOM);
 //		g.drawLine(renderer.getCamera().width/2, 0, renderer.getCamera().width/2, height);
 //		g.drawLine(0, height/2, width, height/2);
 		g.dispose();
@@ -189,16 +207,18 @@ public class Game extends JFrame implements Runnable, EventListener {
 		stop();
 	}
 	
-	private void calculatePreformance() {
+	public void calculatePreformance() {
 		Collections.sort(fpsList);
 		Collections.reverse(fpsList);
 		int mean = 0;
+		int total = 0;
 		for(int i = 0; i < fpsList.size(); i++) {
-			mean += i;
+			total += fpsList.get(i);
+			mean++;
 		}
 		System.out.println("Max FPS: " + fpsList.get(0));
 		System.out.println("Min FPS: " + fpsList.get(fpsList.size() - 1));
-		System.out.println("Mean FPS: " + mean/fpsList.size());
+		System.out.println("Mean FPS: " + total/mean);
 	}
 	
 	public synchronized void start() {
@@ -243,6 +263,7 @@ public class Game extends JFrame implements Runnable, EventListener {
 	}
 	
 	public void saveGame() {
+		System.out.println("Game Saved!");
 		map.saveMap();
 	}
 	
@@ -296,14 +317,21 @@ public class Game extends JFrame implements Runnable, EventListener {
 		return tiles;
 	}
 	
+	public static Player getPlayer() {
+		return player;
+	}
+	
 	/**
 	 * Returns a player at a giving id. -1 will return client player.
 	 * @param id of the player
 	 * @return
 	 */
 	public Player getPlayer(int id) {
+		if(id == -1) {
+			return player;
+		}
 		for(int i = 0; i < players.size(); i++) {
-			if(players.get(i).id == id) {
+			if(players.get(i).getID() == id) {
 				return players.get(i);
 			}
 		}
@@ -324,15 +352,22 @@ public class Game extends JFrame implements Runnable, EventListener {
 	}
 	
 	public void onEvent(Event event) {
-		player.onEvent(event);
+		if(event.getEventType() == EventType.CHAT_EVENT) {
+			ChatEvent e = (ChatEvent) event;
+			chatHandler.dispatch(e);
+		}
+		else {
+			player.onEvent(event);
+		}
 	}
 	
-	public Client getClientPlayer() {
+	public static Client getClientPlayer() {
 		return client;
 	}
 	
 	public void setPlayerID(int id) {
 		player.id = id;
+		System.out.println(player.id);
 	}
 	
 	public void serializeAndSendToServer() {
@@ -342,12 +377,6 @@ public class Game extends JFrame implements Runnable, EventListener {
 		QVObject o = new QVObject("Player");
 		player.serialize(o);
 		database.addObject(o);
-//		for(int i = 0; i < getPlayers().size(); i++) {
-//			Player p = getPlayers().get(i);
-//			QVObject o = new QVObject("Player" + i);
-//			p.serialize(o);
-//			database.addObject(o);
-//		}
 		client.send(database);
 	}
 	
